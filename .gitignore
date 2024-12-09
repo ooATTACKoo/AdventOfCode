@@ -1,0 +1,6 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/2024/AdventOfCode2024/AdventOfCode2024/bin/Debug/net8.0
+/2024/AdventOfCode2024/.vs/AdventOfCode2024
