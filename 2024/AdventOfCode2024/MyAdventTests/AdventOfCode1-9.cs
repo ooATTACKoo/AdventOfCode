@@ -21,7 +21,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day1A()
         {
-            var (list1, list2) = LoadFileIntoToLists(@"C:\temp\01A.txt", true, ' ');
+            var (list1, list2) = FileReader.LoadFileIntoToLists(@"01A.txt", true, ' ');
             var total = 0;
             for (int i = 0; i < list1.Count; i++)
             {
@@ -37,7 +37,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day1B()
         {
-            var (list1, list2) = LoadFileIntoToLists(@"C:\temp\01A.txt", true, ' ');
+            var (list1, list2) = FileReader.LoadFileIntoToLists(@"01A.txt", true, ' ');
             var total = 0;
             for (int i = 0; i < list1.Count; i++)
             {
@@ -66,7 +66,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day2A()
         {
-            var list1 = LoadFileIntoAMatrix(@"C:\temp\02A.txt", ' ');
+            var list1 = FileReader.LoadFileIntoAMatrix(@"02A.txt", ' ');
             var total = 0;
             foreach (var row in list1)
             {
@@ -115,7 +115,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day2B()
         {
-            var list1 = LoadFileIntoAMatrix(@"C:\temp\02A.txt", ' ');
+            var list1 = FileReader.LoadFileIntoAMatrix(@"02A.txt", ' ');
             var total = 0;
             foreach (var row in list1)
             {
@@ -152,7 +152,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day3A()
         {
-            string list1 = LoadFileIntoOneString(@"C:\temp\03A.txt");
+            string list1 = FileReader.LoadFileIntoOneString(@"03A.txt");
             var total = 0;
             while (list1.Length > 0)
             {
@@ -186,7 +186,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day3B()
         {
-            string list1 = LoadFileIntoOneString(@"C:\temp\03A.txt");
+            string list1 = FileReader.LoadFileIntoOneString(@"03A.txt");
             var total = 0;
             bool docalc = true;
             while (list1.Length > 0)
@@ -232,7 +232,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day4A()
         {
-            var matrix = LoadFileIntoAStringMatrix(@"C:\temp\04A.txt");
+            var matrix = FileReader.LoadFileIntoAStringMatrix(@"04A.txt");
             var total = 0;
             for (int x = 0; x < matrix.Count; x++)
             {
@@ -260,7 +260,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day4B()
         {
-            var matrix = LoadFileIntoAStringMatrix(@"C:\temp\04A.txt");
+            var matrix = FileReader.LoadFileIntoAStringMatrix(@"04A.txt");
             var total = 0;
             for (int x = 1; x < matrix.Count - 1; x++)
             {
@@ -290,8 +290,8 @@ namespace MyAdventTests
         [TestMethod]
         public void Day5A()
         {
-            List<List<int>> data = LoadFileIntoAMatrix(@"C:\temp\05BTest.txt", ',');
-            var (list1, list2) = LoadFileIntoToLists(@"C:\temp\05BOrder.txt", false, '|');
+            List<List<int>> data = FileReader.LoadFileIntoAMatrix(@"05BTest.txt", ',');
+            var (list1, list2) = FileReader.LoadFileIntoToLists(@"05BOrder.txt", false, '|');
             var total = 0;
             foreach (var row in data)
             {
@@ -338,8 +338,8 @@ namespace MyAdventTests
         [TestMethod]
         public void Day5B()
         {
-            List<List<int>> data = LoadFileIntoAMatrix(@"C:\temp\05BTest.txt", ',');
-            var (list1, list2) = LoadFileIntoToLists(@"C:\temp\05BOrder.txt", false, '|');
+            List<List<int>> data = FileReader.LoadFileIntoAMatrix(@"05BTest.txt", ',');
+            var (list1, list2) = FileReader.LoadFileIntoToLists(@"05BOrder.txt", false, '|');
             var total = 0;
             foreach (var row in data)
             {
@@ -388,7 +388,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day6A()
         {
-            var data = LoadFileIntoAStringMatrix(@"C:\temp\06A.txt");
+            var data = FileReader.LoadFileIntoAStringMatrix("06A.txt");
             (int, int, string) position = FindCursorInMatrix(data);
             // x pos , y pos, direction
             var total = 0;
@@ -460,7 +460,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day6B()
         {
-            var data = LoadFileIntoAStringMatrix(@"C:\temp\06A.txt");
+            var data = FileReader.LoadFileIntoAStringMatrix(@"06A.txt");
             (int, int, string) position = FindCursorInMatrix(data);
             // x pos , y pos, direction
             var total = 0;
@@ -483,7 +483,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day7A()
         {
-            List<(long, List<int>)> data = LoadFileResultInput(@"C:\temp\07A.txt");
+            List<(long, List<int>)> data = FileReader.LoadFileResultInput(@"07A.txt");
             long total = 0;
             foreach (var row in data)
             {
@@ -507,7 +507,7 @@ namespace MyAdventTests
                     {
                         total += sum;
 
-                        File.AppendAllText(@"C:\temp\07AOut.txt", sum + "\n");
+                        File.AppendAllText(@"07AOut.txt", sum + "\n");
                         break;
                     }
                 }
@@ -518,7 +518,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day7B()
         {
-            List<(long, List<int>)> data = LoadFileResultInput(@"C:\temp\07A.txt");
+            List<(long, List<int>)> data = FileReader.LoadFileResultInput(@"07A.txt");
             long total = 0;
             File.Delete(@"C:\temp\07BOut.txt");
             foreach (var row in data)
@@ -561,7 +561,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day8A()
         {
-            List<List<char>> map = LoadFileIntoAStringMatrix(@"C:\temp\08A.txt");
+            List<List<char>> map = FileReader.LoadFileIntoAStringMatrix(@"08A.txt");
             List<(char, int, int)> locations = GetLocationsFromMap(map);
             var total = 0;
             List<char> keys = locations.Select(x => x.Item1).Distinct().ToList();
@@ -602,7 +602,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day8B()
         {
-            List<List<char>> map = LoadFileIntoAStringMatrix(@"C:\temp\08A.txt");
+            List<List<char>> map = FileReader.LoadFileIntoAStringMatrix(@"08A.txt");
             List<(char, int, int)> locations = GetLocationsFromMap(map);
             var total = 0;
             List<char> keys = locations.Select(x => x.Item1).Distinct().ToList();
@@ -672,7 +672,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day9A()
         {
-            string input = LoadFileIntoOneString(@"C:\temp\09A.txt");
+            string input = FileReader.LoadFileIntoOneString(@"09A.txt");
             var idsWithSpaces = GenerateIdList(input);
             int right = idsWithSpaces.Count - 1;
             for (int left = 0; left < idsWithSpaces.Count; left++)
@@ -701,7 +701,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day9B()
         {
-            string input = LoadFileIntoOneString(@"C:\temp\09A.txt");
+            string input = FileReader.LoadFileIntoOneString(@"09A.txt");
             var idsWithSpaces = GenerateIdList(input);
             (int, int) location = (0, 0);
             int last = idsWithSpaces.Last().Value;
@@ -794,6 +794,8 @@ namespace MyAdventTests
             }
             return checksum;
         }
+
+
 
         private static List<int?> GenerateIdList(string input)
         {
@@ -904,27 +906,6 @@ namespace MyAdventTests
                 rest = rest / baseNumber;
             }
             return base3Representation;
-        }
-
-        private static List<(long, List<int>)> LoadFileResultInput(string v)
-        {
-            var lines = System.IO.File.ReadAllLines(v);
-            List<(long, List<int>)> data = new List<(long, List<int>)>();
-            foreach (var line in lines)
-            {
-                // Split the string by whitespace
-                string[] parts = line.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
-                long result = long.Parse(parts[0]);
-                List<int> numbersList = new List<int>();
-                string[] numbers = parts[1].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var number in numbers)
-                {
-                    numbersList.Add(int.Parse(number));
-                }
-                data.Add((result, numbersList));
-            }
-            return data;
-
         }
 
         private static bool RunInGrid(List<List<char>> data, (int, int, string) position)
@@ -1222,11 +1203,6 @@ namespace MyAdventTests
             return true;
         }
 
-        private static string LoadFileIntoOneString(string v)
-        {
-            return System.IO.File.ReadAllText(v);
-        }
-
         private static int FindNumber(ref string list1)
         {
             int x = 0;
@@ -1313,67 +1289,6 @@ namespace MyAdventTests
             }
 
             return countup > countdown;
-        }
-
-        private (List<int>, List<int>) LoadFileIntoToLists(string file, bool sort, char c)
-        {
-            var lines = System.IO.File.ReadAllLines(file);
-            List<int> number1 = new List<int>();
-            List<int> number2 = new List<int>();
-            foreach (var line in lines)
-            {
-                // Split the string by whitespace
-                string[] parts = line.Split(new[] { c }, StringSplitOptions.RemoveEmptyEntries);
-
-                // Parse the parts into integers
-                number1.Add(int.Parse(parts[0]));
-                number2.Add(int.Parse(parts[1]));
-            }
-
-            if (sort)
-            {
-                number1.Sort();
-                number2.Sort();
-            }
-
-            return (number1, number2);
-        }
-
-        private static List<List<int>> LoadFileIntoAMatrix(string file, char c)
-        {
-            var lines = System.IO.File.ReadAllLines(file);
-
-            List<List<int>> allRows = new List<List<int>>();
-            foreach (var line in lines)
-            {
-                List<int> oneRow = new List<int>();
-                // Split the string by whitespace
-                string[] parts = line.Split(new[] { c }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (var part in parts)
-                {
-                    oneRow.Add(int.Parse(part));
-                }
-                allRows.Add(oneRow);
-            }
-            return allRows;
-        }
-
-        private static List<List<char>> LoadFileIntoAStringMatrix(string file)
-        {
-            var lines = System.IO.File.ReadAllLines(file);
-
-            List<List<char>> allRows = new List<List<char>>();
-            foreach (var line in lines)
-            {
-                List<char> oneRow = new List<char>();
-                // Split the string by whitespace
-                foreach (var charvar in line)
-                {
-                    oneRow.Add(charvar);
-                }
-                allRows.Add(oneRow);
-            }
-            return allRows;
         }
     }
 }
