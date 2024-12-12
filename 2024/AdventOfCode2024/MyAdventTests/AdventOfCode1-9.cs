@@ -507,7 +507,7 @@ namespace MyAdventTests
                     {
                         total += sum;
 
-                        File.AppendAllText(@"07AOut.txt", sum + "\n");
+                        //File.AppendAllText(@"07AOut.txt", sum + "\n");
                         break;
                     }
                 }
