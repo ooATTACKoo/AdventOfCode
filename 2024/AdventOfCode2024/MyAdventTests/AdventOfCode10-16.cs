@@ -218,7 +218,7 @@ namespace MyAdventTests
                         int newy = boarderfield.Item2 + corner.Item2;
                         if (boarderfields.Contains((newx, newy)))
                         {
-                             
+
                             var corner1 = (newx - corner.Item1, newy);
                             var corner2 = (newx, newy - corner.Item2);
                             if (areafields.Contains(corner1) && !areafields.Contains(corner2))
@@ -227,7 +227,7 @@ namespace MyAdventTests
                             } else if (!areafields.Contains(corner1) && areafields.Contains(corner2))
                             { field++; }
 
-                           
+
                         }
                     }
                     boarder += field;
@@ -246,6 +246,108 @@ namespace MyAdventTests
             (1,-1),
                         (1,1),
         };
+
+        [TestMethod]
+        public void Day13a()
+        {
+            int buttonA = 3;
+            int buttonB = 1;
+            List<((int, int), (int, int), (int, int))> maschines = FileReader.LoadButtonInformation("13A.txt");
+            int total=0;
+            foreach (var maschine in maschines)
+            {
+                List<(int, int)> goals = FindAllWaysForThePrice(maschine.Item1, maschine.Item2, maschine.Item3);
+
+
+                int minimum = int.MaxValue;
+                foreach (var goal in goals)
+                {
+                    if (goal.Item1 * buttonA + goal.Item2 * buttonB < minimum)
+                    {
+                        minimum = goal.Item1 * buttonA + goal.Item2 * buttonB;
+                    }
+                }
+                if (minimum < int.MaxValue)
+                {
+                    total += minimum;
+                }
+            }
+            Assert.AreEqual(33921, total);
+        }
+
+        [TestMethod]
+        public void Day13B()
+        {
+            int buttonA = 3;
+            int buttonB = 1;
+            List<((int, int), (int, int), (int, int))> maschines = FileReader.LoadButtonInformation("13A.txt");
+            long total = 0;
+            foreach (var maschine in maschines)
+            {
+                long scale = 10000000000000;
+                (long, long) movedprice = (maschine.Item3.Item1+scale,maschine.Item3.Item2+scale);
+                List<(long, long)> goals = FindAllWaysForThePriceWithMAth(maschine.Item1, maschine.Item2, movedprice);
+                long minimum = long.MaxValue;
+                foreach (var goal in goals)
+                {
+                    if (goal.Item1 * buttonA + goal.Item2 * buttonB < minimum)
+                    {
+                        minimum = goal.Item1 * buttonA + goal.Item2 * buttonB;
+                    }
+                }
+                if (minimum < long.MaxValue)
+                {
+                    total += minimum;
+                }
+            }
+            Assert.AreEqual(82261957837868, total);
+        }
+
+        private List<(long, long)> FindAllWaysForThePriceWithMAth((int, int) buttonA, (int, int) buttonB, (long, long) movedprice)
+        {
+            double AX = buttonA.Item1;
+            double BX = buttonA.Item2;
+            double AY = buttonB.Item1;
+            double BY = buttonB.Item2;
+            double GA = movedprice.Item1;
+            double GB = movedprice.Item2;
+            double step1= (GB/BX)*AX;
+            double step2 = (BY/BX)*AX;
+            double step3 = GA - step1;
+            double step4 = AY - step2;
+            double step5 = step3 / step4;
+            double step6 = Math.Round(step5,8);
+            if (long.TryParse(step6.ToString(), out long result))
+            {
+                double res2 = (GA-result*AY)/AX;
+                double reoundres2 = Math.Round(res2, 8);
+                if (long.TryParse(reoundres2.ToString(), out long result2))
+                {
+                    if (result >= 0 && result2 >= 0)
+                    {
+                        return new List<(long, long)> { (result2, result) };
+                    }
+                }
+            }
+            return new List<(long, long)>();          
+        }
+
+        private List<(int, int)> FindAllWaysForThePrice((int, int) buttona, (int, int) buttonb, (int, int) price)
+        {
+            List<(int, int)> goals = new List<(int, int)>();
+            for (int a = 0; a < 100; a++)
+            {
+                for (int b = 0; b < 100; b++)
+                {
+                    if (a * buttona.Item1 + b * buttonb.Item1 == price.Item1 &&
+                                               a * buttona.Item2 + b * buttonb.Item2 == price.Item2)
+                    {
+                        goals.Add((a, b));
+                    }
+                }
+            }
+            return goals;
+        }
 
         private void MapArea(List<List<char>> matrix, int x, int y, (int, int) area)
         {

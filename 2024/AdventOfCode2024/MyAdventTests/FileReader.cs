@@ -111,5 +111,62 @@ namespace MyAdventTests
         {
             return System.IO.File.ReadAllText(relativePath+v);
         }
+
+        internal static List<((int, int), (int, int), (int,int))> LoadButtonInformation(string v)
+        {
+            var lines = System.IO.File.ReadAllLines(relativePath + v);
+            (int, int) buttonA = (0,0);
+            (int, int) buttonB = (0,0);
+            (int,int) goal = (0,0);
+            List<((int, int), (int, int), (int, int))> data = new List<((int, int), (int, int), (int, int))>();
+            foreach (var line in lines)
+            {
+                // Split the string by whitespace
+               if (line.StartsWith("Button A:"))
+                {
+                    buttonA=CreateAButton(line);
+                    continue;
+                }
+               if (line.StartsWith("Button B:"))
+                {
+                    buttonB = CreateAButton(line);
+                    continue;
+                }
+               if (line.StartsWith("Prize:"))
+                {
+                    string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                    int goalX = 0;
+                    int goalY = 0;
+                    foreach (var part in parts)
+                    {
+                        if (part.StartsWith("X="))
+                        {
+                            goalX = int.Parse(part.Substring(2).Remove(part.Length-3,1));
+                        }
+                        if (part.StartsWith("Y="))
+                        {
+                            goalY = int.Parse(part.Substring(2));
+                        }
+                    }
+
+                    goal = (goalX, goalY);
+                    continue;
+                }
+               data.Add((buttonA, buttonB, goal));
+            }
+            if (!data.Contains((buttonA, buttonB, goal)))
+            {
+                data.Add((buttonA, buttonB, goal));
+            }
+            return data;
+        }
+
+        private static (int, int) CreateAButton(string line)
+        {
+            string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string buttonx = parts[2];
+            string buttony = parts[3];
+            return (int.Parse(buttonx.Substring(2, 2)), int.Parse(buttony.Substring(2, 2)));
+        }
     }
 }
