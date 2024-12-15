@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace MyAdventTests
 {
@@ -22,6 +23,20 @@ namespace MyAdventTests
                 allRows.Add(oneRow);
             }
             return allRows;
+        }
+
+        public static List<int> LoadFileIntoAList(string file)
+        {
+            var lines = System.IO.File.ReadAllLines(relativePath+file);
+            List<int> number1 = new List<int>();
+            foreach (var line in lines)
+            {
+
+
+                // Parse the parts into integers
+                number1.Add(int.Parse(line));
+            }
+            return number1;
         }
 
 
@@ -134,20 +149,10 @@ namespace MyAdventTests
                 }
                if (line.StartsWith("Prize:"))
                 {
-                    string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                    int goalX = 0;
-                    int goalY = 0;
-                    foreach (var part in parts)
-                    {
-                        if (part.StartsWith("X="))
-                        {
-                            goalX = int.Parse(part.Substring(2).Remove(part.Length-3,1));
-                        }
-                        if (part.StartsWith("Y="))
-                        {
-                            goalY = int.Parse(part.Substring(2));
-                        }
-                    }
+                    string pattern = @"X[=+](\d+), Y[=+](\d+)";
+                    Match match = Regex.Match(line, pattern);
+                    int goalX = int.Parse(match.Groups[1].Value);
+                    int goalY = int.Parse(match.Groups[2].Value);
 
                     goal = (goalX, goalY);
                     continue;
@@ -163,10 +168,33 @@ namespace MyAdventTests
 
         private static (int, int) CreateAButton(string line)
         {
-            string[] parts = line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            string buttonx = parts[2];
-            string buttony = parts[3];
-            return (int.Parse(buttonx.Substring(2, 2)), int.Parse(buttony.Substring(2, 2)));
+            string pattern = @"X\+(\d+), Y\+(\d+)";
+
+            Match match = Regex.Match(line, pattern);
+            string buttonx = match.Groups[1].Value;
+            string buttony = match.Groups[2].Value;
+            return (int.Parse(buttonx), int.Parse(buttony));
+        }
+
+        internal static List<((int, int), (int, int))> LoadRobotsFromFile(string v)
+        {
+            var lines = System.IO.File.ReadAllLines(relativePath + v);
+            (int, int) position = (0, 0);
+            (int, int) valocity = (0, 0);
+            var robots = new List<((int, int), (int, int))>();
+            foreach (var line in lines)
+            {
+                string pattern = @"p=(-?\d+),\s*(-?\d+)\s*v=(-?\d+),\s*(-?\d+)";
+                Match match = Regex.Match(line, pattern);
+                int x = int.Parse(match.Groups[1].Value);
+                int y = int.Parse(match.Groups[2].Value);
+                position = (x, y);
+                int vx = int.Parse(match.Groups[3].Value);
+                int vy = int.Parse(match.Groups[4].Value);
+                valocity = (vx, vy);
+                robots.Add((position, valocity));
+            }
+            return robots;
         }
     }
 }

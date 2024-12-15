@@ -253,7 +253,7 @@ namespace MyAdventTests
             int buttonA = 3;
             int buttonB = 1;
             List<((int, int), (int, int), (int, int))> maschines = FileReader.LoadButtonInformation("13A.txt");
-            int total=0;
+            int total = 0;
             foreach (var maschine in maschines)
             {
                 List<(int, int)> goals = FindAllWaysForThePrice(maschine.Item1, maschine.Item2, maschine.Item3);
@@ -285,7 +285,7 @@ namespace MyAdventTests
             foreach (var maschine in maschines)
             {
                 long scale = 10000000000000;
-                (long, long) movedprice = (maschine.Item3.Item1+scale,maschine.Item3.Item2+scale);
+                (long, long) movedprice = (maschine.Item3.Item1 + scale, maschine.Item3.Item2 + scale);
                 List<(long, long)> goals = FindAllWaysForThePriceWithMAth(maschine.Item1, maschine.Item2, movedprice);
                 long minimum = long.MaxValue;
                 foreach (var goal in goals)
@@ -303,6 +303,138 @@ namespace MyAdventTests
             Assert.AreEqual(82261957837868, total);
         }
 
+        [TestMethod]
+        public void Day14A()
+        {
+            List<((int, int), (int, int))> matrix = FileReader.LoadRobotsFromFile("14A.txt");
+            int seconds = 100;
+            (int, int) mapsize = (101, 103);
+            List<(int, int)> allEndPositions = new List<(int, int)>();
+            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\14Out.txt");
+            for (int s = 100; s <= seconds; s++)
+            {
+                allEndPositions = new List<(int, int)>();
+                foreach (var robot in matrix)
+                {
+                    (int, int) position = robot.Item1;
+                    (int, int) velocity = robot.Item2;
+                    int xEnd = (position.Item1 + velocity.Item1 * s) % mapsize.Item1;
+                    int yEnd = (position.Item2 + velocity.Item2 * s) % mapsize.Item2;
+                    if (xEnd < 0)
+                    {
+                        xEnd = mapsize.Item1 + xEnd;
+                    }
+
+                    if (yEnd < 0)
+                    {
+                        yEnd = mapsize.Item2 + yEnd;
+                    }
+                    allEndPositions.Add((xEnd, yEnd));
+                }
+
+                // when running for 10000 seconds, this will find the easter egg at second  8270 to solve part 2
+                //    bool found = false;
+                //    foreach (var position in allEndPositions)
+                //    {
+                //        int counter= 0;
+                //        foreach (var pos in tree)
+                //        {
+                //            if (allEndPositions.Contains((position.Item1 + pos.Item1, position.Item2 + pos.Item2)))
+                //            {
+                //                counter++;
+                //            }
+                //        }
+                //        if (counter >= 20)
+                //        {
+                //            found = true;
+                //        }
+
+                //    }
+                //    if (found)
+                //    {
+                //        File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\14Out.txt", $"\n {s} \n");
+                //        PrintMap(allEndPositions, mapsize);
+                //    }
+            }
+            int Q1 = 0;
+            int Q2 = 0;
+            int Q3 = 0;
+            int Q4 = 0;
+            int nocountX = (mapsize.Item1 - 1) / 2;
+            int nocountY = (mapsize.Item2 - 1) / 2;
+            foreach (var position in allEndPositions)
+            {
+                if (position.Item1 < nocountX && position.Item2 < nocountY)
+                {
+                    Q1++;
+                }
+                if (position.Item1 > nocountX && position.Item2 < nocountY)
+                {
+                    Q2++;
+                }
+                if (position.Item1 < nocountX && position.Item2 > nocountY)
+                {
+                    Q3++;
+                }
+                if (position.Item1 > nocountX && position.Item2 > nocountY)
+                {
+                    Q4++;
+                }
+            }
+            int total = Q1 * Q2 * Q3 * Q4;
+            Assert.AreEqual(230436441, total);
+        }
+
+        public List<(int, int)> tree = new List<(int, int)>{
+           (-1,0),
+           (-1,-1),
+           (-1,1),
+           (0,-1),
+           (0,1),
+           (1,0),
+           (1,-1),
+           (1,1),
+            (2,0),
+            (2,-1),
+            (2,1),
+            (2,2),
+            (2,-2),
+            (0,2),
+            (0,-2),
+            (-2,0),
+            (-2,1),
+            (-2,-1),
+            (-2,2),
+            (-2,-2),
+            (1,2),
+            (1,-2),
+            (-1,2),
+            (-1,-2),
+        };
+
+        private void PrintMap(List<(int, int)> allEndPositions, (int, int) mapsize)
+        {
+            string line = "";
+
+            for (int y = 0; y < mapsize.Item2; y++)
+            {
+                for (int x = 0; x < mapsize.Item1; x++)
+                {
+                    var numberofRobots = allEndPositions.Where(pos => pos.Item1 == x && pos.Item2 == y);
+                    if (numberofRobots.Any())
+                    {
+                        line += $"{numberofRobots.Count()}";
+                    } else
+                    {
+                        line += ".";
+                    }
+                }
+                File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\14Out.txt", line + "\n");
+                line = "";
+            }
+            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\14Out.txt", "\n\n");
+        }
+
         private List<(long, long)> FindAllWaysForThePriceWithMAth((int, int) buttonA, (int, int) buttonB, (long, long) movedprice)
         {
             double AX = buttonA.Item1;
@@ -311,15 +443,15 @@ namespace MyAdventTests
             double BY = buttonB.Item2;
             double GA = movedprice.Item1;
             double GB = movedprice.Item2;
-            double step1= (GB/BX)*AX;
-            double step2 = (BY/BX)*AX;
+            double step1 = (GB / BX) * AX;
+            double step2 = (BY / BX) * AX;
             double step3 = GA - step1;
             double step4 = AY - step2;
             double step5 = step3 / step4;
-            double step6 = Math.Round(step5,8);
+            double step6 = Math.Round(step5, 8);
             if (long.TryParse(step6.ToString(), out long result))
             {
-                double res2 = (GA-result*AY)/AX;
+                double res2 = (GA - result * AY) / AX;
                 double reoundres2 = Math.Round(res2, 8);
                 if (long.TryParse(reoundres2.ToString(), out long result2))
                 {
@@ -329,7 +461,7 @@ namespace MyAdventTests
                     }
                 }
             }
-            return new List<(long, long)>();          
+            return new List<(long, long)>();
         }
 
         private List<(int, int)> FindAllWaysForThePrice((int, int) buttona, (int, int) buttonb, (int, int) price)
