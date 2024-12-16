@@ -25,6 +25,34 @@ namespace MyAdventTests
             return allRows;
         }
 
+        public static (List<List<char>>,string) LoadFileIntoAStringMatrixWithMoves(string file)
+        {
+            var lines = System.IO.File.ReadAllLines(relativePath + file);
+            string moves ="";
+            List<List<char>> allRows = new List<List<char>>();
+            foreach (var line in lines)
+            {
+                List<char> oneRow = new List<char>();
+                if (line.StartsWith("#"))
+                {                 // Split the string by whitespace
+                    foreach (var charvar in line)
+                    {
+                        oneRow.Add(charvar);
+                    }
+                    allRows.Add(oneRow);
+                } else
+                {
+                    if (line.Length > 2)
+                    {
+                        line.Remove(line.Length-1, 1);
+                        moves += line;
+                    }
+                }
+
+            }
+            return (allRows,moves);
+        }
+
         public static List<int> LoadFileIntoAList(string file)
         {
             var lines = System.IO.File.ReadAllLines(relativePath+file);

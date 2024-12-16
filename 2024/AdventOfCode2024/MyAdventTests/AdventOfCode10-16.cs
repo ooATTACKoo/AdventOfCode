@@ -385,6 +385,291 @@ namespace MyAdventTests
             Assert.AreEqual(230436441, total);
         }
 
+        [TestMethod]
+        public void Day15A()
+        {
+            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\15Out.txt");
+            var data = FileReader.LoadFileIntoAStringMatrixWithMoves("15A.txt");
+            var matrix = data.Item1;
+            var moves = data.Item2;
+            (int, int) robot = FindRobotInMap(matrix);
+            for (int i = 0; i < moves.Length; i++)
+            {
+                var direction = moves[i];
+                robot = MoveRobot(matrix, robot, direction);
+
+            }
+            PrintMap(matrix);
+            int total = 0;
+            for (int i = 0; matrix.Count > i; i++)
+            {
+                for (int j = 0; matrix[0].Count > j; j++)
+                {
+                    if (matrix[i][j] == 'O')
+                    {
+                        total = total + 100 * i + j;
+                    }
+                }
+            }
+            Assert.AreEqual(1509074, total);
+        }
+
+        [TestMethod]
+        public void Day15B()
+        {
+            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\15Out.txt");
+            var data = FileReader.LoadFileIntoAStringMatrixWithMoves("15A.txt");
+            var matrix = ModifyMap(data.Item1);
+            var moves = data.Item2;
+            PrintMap(matrix);
+            (int, int) robot = FindRobotInMap(matrix);
+            for (int i = 0; i < moves.Length; i++)
+            {
+                var direction = moves[i];
+                robot = MoveRobotLarge(matrix, robot, direction);
+                
+
+            }
+            PrintMap(matrix);
+            int total = 0;
+            for (int i = 0; matrix.Count > i; i++)
+            {
+                for (int j = 0; matrix[0].Count > j; j++)
+                {
+                    if (matrix[i][j] == '[')
+                    {
+                        total = total + 100 * i + j;
+                    }
+                }
+            }
+            Assert.AreEqual(1521453, total);
+        }
+
+        private (int, int) MoveRobotLarge(List<List<char>> matrix, (int, int) robot, char direction)
+        {
+            (int, int) movedirection = FindMoveDirection(direction);
+
+            bool canmove = false;
+            List<(int,int)> checkpos = new List<(int, int)>() { (robot.Item1 + movedirection.Item1, robot.Item2 + movedirection.Item2) };
+            List < (int, int) > checkedpos = new List<(int, int)>();
+            while (checkpos.All(c => matrix[c.Item1][c.Item2] != '#'))
+            {
+                if (checkpos.All(c => matrix[c.Item1][c.Item2] == '.'))
+                {
+                    canmove = true;
+                    break;
+                }
+                List<(int, int)> newcheckpos = new List<(int, int)>();
+ 
+                foreach (var pos in checkpos)
+                {
+                    if (movedirection.Item1 == 0)
+                    {
+                        if (matrix[pos.Item1][pos.Item2] == ']')
+                        {
+                            AddNewPosition((movedirection), newcheckpos, pos, checkedpos);
+                        }
+                        if (matrix[pos.Item1][pos.Item2] == '[')
+                        {
+                            AddNewPosition(movedirection, newcheckpos, pos, checkedpos);
+                        }
+                        continue;
+                    }
+                    if (matrix[pos.Item1][pos.Item2] == ']')
+                    {
+                        AddNewPosition(movedirection, newcheckpos, pos, checkedpos);
+                        AddNewPosition((0, -1), newcheckpos, pos, checkedpos);
+                    }
+                    if (matrix[pos.Item1][pos.Item2] == '[')
+                    {
+                        AddNewPosition(movedirection, newcheckpos, pos, checkedpos);
+                        AddNewPosition((0 , +1), newcheckpos, pos,checkedpos);
+                    }
+                }
+                checkedpos.AddRange(checkpos);
+                checkpos = newcheckpos;
+            }       
+
+            List<(int, int)> moveUp = new List<(int, int)>() { robot};
+            HashSet<((int, int), (int, int))> Allmoves = new HashSet<((int, int), (int, int))>();
+            if (canmove)
+            {
+                while (moveUp.Count > 0)
+                {
+                    if (matrix[moveUp[0].Item1+movedirection.Item1][moveUp[0].Item2+movedirection.Item2] == '[')
+                    {
+                        moveUp.Add((moveUp[0].Item1 + movedirection.Item1, moveUp[0].Item2 + movedirection.Item2));
+                        if (movedirection.Item1 != 0)
+                        {
+                            moveUp.Add((moveUp[0].Item1 + movedirection.Item1 , moveUp[0].Item2 + movedirection.Item2 +1));
+                        }
+                    }
+                    if (matrix[moveUp[0].Item1 + movedirection.Item1][moveUp[0].Item2 + movedirection.Item2] == ']')
+                    {
+                        moveUp.Add((moveUp[0].Item1 + movedirection.Item1, moveUp[0].Item2 + movedirection.Item2));
+                        if (movedirection.Item1 != 0)
+                        {
+                            moveUp.Add((moveUp[0].Item1 + movedirection.Item1, moveUp[0].Item2 + movedirection.Item2-1));
+                        }
+                    }
+                    Allmoves.Add((moveUp[0], movedirection));
+                    moveUp.RemoveAt(0);
+                }
+                while(Allmoves.Count > 0)
+                {
+                    var move = Allmoves.Last();
+                    var position = move.Item1;
+                    var godirection = move.Item2;
+                    var temp = matrix[position.Item1 + godirection.Item1][position.Item2 + godirection.Item2];
+                    matrix[position.Item1 + godirection.Item1][position.Item2 + godirection.Item2] = matrix[position.Item1][position.Item2];
+                    matrix[position.Item1][position.Item2] = temp;
+                    Allmoves.Remove(move);
+                }
+                robot = (robot.Item1 + movedirection.Item1, robot.Item2 + movedirection.Item2);
+            }
+            return robot;
+
+        }
+
+        private static void AddNewPosition((int, int) movedirection, List<(int, int)> newcheckpos, (int, int) pos, List<(int, int)> checkedPos )
+        {
+            if (checkedPos.Contains((pos.Item1 + movedirection.Item1, pos.Item2 + movedirection.Item2)))
+            {
+                return;
+            }
+            if (!newcheckpos.Contains((pos.Item1 + movedirection.Item1, pos.Item2 + movedirection.Item2)))
+            {
+                newcheckpos.Add((pos.Item1 + movedirection.Item1, pos.Item2 + movedirection.Item2));
+            }
+        }
+
+        private List<List<char>> ModifyMap(List<List<char>> item1)
+        {
+            var newMap = new List<List<char>>();
+            for (int i = 0; item1.Count > i; i++)
+            {
+                var row = new List<char>();
+                for (int j = 0; item1[0].Count > j; j++)
+                {
+                    switch (item1[i][j])
+                    {
+
+                        case '.':
+                        row.Add('.');
+                        row.Add('.');
+                        break;
+                        case '#':
+                        row.Add('#');
+                        row.Add('#');
+                        break;
+                        case 'O':
+                        row.Add('[');
+                        row.Add(']');
+                        break;
+                        case '@':
+                        row.Add('@');
+                        row.Add('.');
+                        break;
+                    }
+                }
+                newMap.Add(row);
+            }
+            return newMap;
+        }
+
+        private (int, int) FindRobotInMap(List<List<char>> matrix)
+        {
+            for (int i = 0; matrix.Count > i; i++)
+            {
+                for (int j = 0; matrix[0].Count > j; j++)
+                {
+                    if (matrix[i][j] == '@')
+                    {
+                        return (i, j);
+                    }
+                }
+            }
+            Assert.Fail("Robot not found");
+            return (0, 0);
+        }
+
+        private void PrintMap(List<List<char>> matrix)
+        {
+            PrintMap(matrix, ' ');
+        }
+        private void PrintMap(List<List<char>> matrix,char c)
+        {
+            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\15Out.txt", c + "\n");
+            for (int i = 0; matrix.Count > i; i++)
+            {
+                string line = "";
+                for (int j = 0; matrix[0].Count > j; j++)
+                {
+                    line += matrix[i][j];
+                }
+                File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\15Out.txt", line + "\n");
+            }
+            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\15Out.txt", "\n");
+        }
+
+        private (int, int) MoveRobot(List<List<char>> matrix, (int, int) robot, char direction)
+        {
+            (int, int) movedirection = FindMoveDirection(direction);
+
+            bool canmove = false;
+            var checkpos = (robot.Item1 + movedirection.Item1, robot.Item2 + movedirection.Item2);
+            while (matrix[checkpos.Item1][checkpos.Item2] != '#')
+            {
+                if (matrix[checkpos.Item1][checkpos.Item2] == 'O')
+                {
+                    checkpos = (checkpos.Item1 + movedirection.Item1, checkpos.Item2 + movedirection.Item2);
+                    continue;
+                }
+                if (matrix[checkpos.Item1][checkpos.Item2] == '.')
+                {
+                    canmove = true;
+                    break;
+                }
+                movedirection = (robot.Item1, robot.Item2);
+            }
+
+            if (canmove)
+            {
+                if (matrix[robot.Item1 + movedirection.Item1][robot.Item2 + movedirection.Item2] == 'O')
+                {
+                    matrix[checkpos.Item1][checkpos.Item2] = 'O';
+                }
+                matrix[robot.Item1][robot.Item2] = '.';
+                matrix[robot.Item1 + movedirection.Item1][robot.Item2 + movedirection.Item2] = '@';
+                return (robot.Item1 + movedirection.Item1, robot.Item2 + movedirection.Item2);
+            }
+            return robot;
+
+        }
+
+        private static (int, int) FindMoveDirection(char direction)
+        {
+            (int, int) movedirection = (0, 0);
+            switch (direction)
+            {
+
+                case '^':
+                movedirection = (-1, 0);
+                break;
+                case 'v':
+                movedirection = (1, 0);
+                break;
+                case '<':
+                movedirection = (0, -1);
+                break;
+                case '>':
+                movedirection = (0, 1);
+                break;
+            }
+
+            return movedirection;
+        }
+
         public List<(int, int)> tree = new List<(int, int)>{
            (-1,0),
            (-1,-1),
