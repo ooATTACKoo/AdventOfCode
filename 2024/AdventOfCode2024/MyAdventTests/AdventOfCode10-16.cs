@@ -3,11 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using System.Collections;
+using System.ComponentModel;
 
 namespace MyAdventTests
 
@@ -110,7 +106,7 @@ namespace MyAdventTests
             long totals = 0;
             foreach (var item in matrix[0])
             {
-                File.AppendAllText(@"07AOut.txt", item + ": " + DateTime.Now.ToString() + "\n");
+                System.IO.File.AppendAllText(@"07AOut.txt", item + ": " + DateTime.Now.ToString() + "\n");
                 totals += ExecuteAStoneBlinck(item, iterations);
             }
 
@@ -388,11 +384,11 @@ namespace MyAdventTests
         [TestMethod]
         public void Day15A()
         {
-            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\15Out.txt");
+            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt");
             var data = FileReader.LoadFileIntoAStringMatrixWithMoves("15A.txt");
             var matrix = data.Item1;
             var moves = data.Item2;
-            (int, int) robot = FindRobotInMap(matrix);
+            (int, int) robot = FindCharInMap(matrix, '@');
             for (int i = 0; i < moves.Length; i++)
             {
                 var direction = moves[i];
@@ -417,17 +413,17 @@ namespace MyAdventTests
         [TestMethod]
         public void Day15B()
         {
-            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\15Out.txt");
+            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt");
             var data = FileReader.LoadFileIntoAStringMatrixWithMoves("15A.txt");
             var matrix = ModifyMap(data.Item1);
             var moves = data.Item2;
             PrintMap(matrix);
-            (int, int) robot = FindRobotInMap(matrix);
+            (int, int) robot = FindCharInMap(matrix, '@');
             for (int i = 0; i < moves.Length; i++)
             {
                 var direction = moves[i];
                 robot = MoveRobotLarge(matrix, robot, direction);
-                
+
 
             }
             PrintMap(matrix);
@@ -445,13 +441,309 @@ namespace MyAdventTests
             Assert.AreEqual(1521453, total);
         }
 
+        public int TotalCost = 0;
+        [TestMethod]
+        public void Day16A()
+        {
+            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt");
+            var matrix = FileReader.LoadFileIntoAStringMatrix("16A.txt");
+            var start = FindCharInMap(matrix, 'S');
+            var end = FindCharInMap(matrix, 'E');
+            List<(int, int)> visitedPositions = new List<(int, int)>();
+            int cost = 1001;
+            var direction = (0, 1);
+            TotalCost = 121452;
+            RunInTheMaze(matrix, start, direction, end, visitedPositions, cost);
+            Assert.AreEqual(105508, TotalCost);
+        }
+
+        [TestMethod]
+        public void Day16B()
+        {
+            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt");
+            var matrix = FileReader.LoadFileIntoAStringMatrix("16Test3.txt");
+            var start = FindCharInMap(matrix, 'S');
+            var end = FindCharInMap(matrix, 'E');
+            List<(int, int)> visitedPositions = new List<(int, int)>();
+            int cost = 1;
+            var direction = (0, 1);
+            TotalCost = 121452;
+            RunInTheMaze(matrix, start, direction, end, visitedPositions, cost);
+            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"Map Costs At End{cost}\n");
+            Assert.AreEqual(105508, TotalCost);
+        }
+
+        private void RunInTheMaze(List<List<char>> matrix, (int, int) myPosition, (int, int) direction, (int, int) end, List<(int, int)> visitedPositions, int cornerCosts)
+        {
+            List<((int, int), int, (int, int))> notcheckeddirections = new List<((int, int), int, (int, int))>() { (myPosition, 0, direction) };
+            Dictionary<(int, int), int> visitedPositionsCosts = new Dictionary<(int, int), int>();
+            while (notcheckeddirections.Count > 0)
+            {
+                var check = notcheckeddirections[0];
+                var position = check.Item1;
+                var checkdirection = check.Item3;
+                var checkcost = check.Item2;
+
+                notcheckeddirections.RemoveAt(0);
+                if (position == (1, 15))
+                {
+                    checkcost = check.Item2;
+                }
+
+                if (visitedPositionsCosts.TryGetValue(position, out int poscost))
+                {
+                    bool better = false;
+                    if (position == end && poscost > checkcost)
+                    { visitedPositionsCosts[position] = checkcost;
+                        better = true;
+                    }
+                        
+                    if (CheckForSpace(position, checkdirection, matrix) && poscost > checkcost)
+                    {
+                        visitedPositionsCosts[position] = checkcost;
+                        better = true;
+                    }
+                    if (!better)
+                    {
+                        List<(int, int)> newdir = OtherDirections(checkdirection);
+                        if (CheckForSpace(position, newdir[0], matrix) && poscost > checkcost + 1000)
+                        {
+                            visitedPositionsCosts[position] = checkcost + 1000;
+                            better = true;
+                        }
+                        if (CheckForSpace(position, newdir[1], matrix) && poscost > checkcost + 1000)
+                        {
+                            visitedPositionsCosts[position] = checkcost + 1000;
+                            better = true;
+                        }
+                    }
+                    if (!better)
+                    { continue; }
+                }
+
+                if (!visitedPositionsCosts.ContainsKey(position))
+                {
+                    visitedPositionsCosts.Add(position, checkcost);
+                    // File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"Position {position}: cost {checkcost}\n");
+                }
+
+                if (position == end)
+                {
+                    if (checkcost < TotalCost)
+                    {
+
+                        TotalCost = checkcost;
+                        File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"New TotalCosts{TotalCost}\n");
+
+                    }
+                    //File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"Map Costs At End{cost}\n");
+                    //PrintMapWithPath(matrix, visitedPositions);
+                    continue;
+                }
+
+
+
+                if (CheckForSpace(position, checkdirection, matrix))
+                {
+                    notcheckeddirections.Add(((position.Item1 + checkdirection.Item1, position.Item2 + checkdirection.Item2), checkcost + 1, checkdirection));
+                }
+
+                List<(int, int)> newdirections = OtherDirections(checkdirection);
+                bool turned = false;
+                if (CheckForSpace(position, newdirections[0], matrix))
+                {
+                    turned = true;
+                    notcheckeddirections.Add(((position.Item1 + newdirections[0].Item1, position.Item2 + newdirections[0].Item2), checkcost + cornerCosts, newdirections[0]));
+                }
+                if (CheckForSpace(position, newdirections[1], matrix))
+                {
+                    turned = true;
+                    notcheckeddirections.Add(((position.Item1 + newdirections[1].Item1, position.Item2 + newdirections[1].Item2), checkcost + cornerCosts, newdirections[1]));
+                }
+                if (turned)
+                {
+                    // visitedPositionsCosts[position] = checkcost+1000;
+                }
+                //   PrintMapWithPath(matrix, visitedPositionsCosts.Keys.ToList());
+
+            }
+
+            List<((int, int), int)> checkerList = new List<((int, int), int)>() { (end, TotalCost) };
+            HashSet<(int, int)> thePATH = new HashSet<(int, int)>();
+            while (checkerList.Count > 0)
+            {
+
+                var checker = checkerList[0].Item1;
+                var oldcheckercosts = checkerList[0].Item2;
+                var checkercosts = visitedPositionsCosts[checker];
+                checkerList.RemoveAt(0);
+                thePATH.Add(checker);
+                if (checker == myPosition)
+                {
+                    continue;
+                }
+
+
+                List<((int, int), int)> directionsToGo = new List<((int, int), int)>();
+                foreach (var d in directions)
+                {
+                    if (visitedPositionsCosts.ContainsKey((checker.Item1 + d.Item1, checker.Item2 + d.Item2)))
+                    {
+                        visitedPositionsCosts.TryGetValue((checker.Item1 + d.Item1, checker.Item2 + d.Item2), out int newcost);
+                        if ((newcost % 1000) + 1 == checkercosts % 1000 && (newcost < oldcheckercosts || oldcheckercosts - newcost ==-998))
+                            directionsToGo.Add((d, newcost));
+                    }
+                }
+                if (directionsToGo.Count > 1)
+                {
+                    File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"The PATH divides into {directionsToGo.Count} at {checker} places\n");
+                }
+
+                if (directionsToGo.Count == 0)
+                {
+                    File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"The PATH is a dead end {directionsToGo.Count} at {checker} places\n");
+
+                    continue;
+                }
+
+                var mincost = directionsToGo.OrderBy(d => d.Item2).ToList()[0];
+                int oldCostsFromStepBefore = visitedPositionsCosts[checker];
+                foreach (var d in directionsToGo)
+                {
+                    if (directionsToGo.Count==1|| (d.Item2 % 1000 == mincost.Item2 % 1000  && d.Item2 < oldcheckercosts) )
+                    {
+                        checkerList.Add(((checker.Item1 + d.Item1.Item1, checker.Item2 + d.Item1.Item2), oldCostsFromStepBefore));
+                    }
+                }
+
+            }
+            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"The PATH contains {thePATH.Count} places\n");
+            PrintMapWithPath(matrix, thePATH.ToList());
+            CreateCostmap(matrix, visitedPositionsCosts);
+
+        }
+
+        private static List<(int, int)> OtherDirections((int, int) checkdirection)
+        {
+            List<(int, int)> newdirections;
+            if (checkdirection.Item1 == 0)
+            {
+                newdirections = new List<(int, int)>() { (-1, 0), (1, 0) };
+            } else
+            {
+                newdirections = new List<(int, int)>() { (0, 1), (0, -1) };
+            }
+
+            return newdirections;
+        }
+
+        private void CreateCostmap(List<List<char>> matrix, Dictionary<(int, int), int> visitedPositionsCosts)
+        {
+            List<List<char>> map = new List<List<char>>();
+            List<char> visited = new List<char>() { ' ' };
+            for (int i = 0; i < matrix[0].Count; i++)
+            {
+                char c = GetIndexforMatrix(i);
+                visited.Add(c);
+                visited.Add(c);
+                visited.Add(c);
+                visited.Add(c);
+                visited.Add(c);
+                visited.Add(c);
+                visited.Add(c);
+            }
+            map.Add(visited);
+            for (int i = 0; i < matrix.Count; i++)
+            {
+                char c = GetIndexforMatrix(i);
+
+                List<char> row = new List<char>();
+                row.Add(c);
+                for (int j = 0; j < matrix[0].Count; j++)
+                {
+                    if (visitedPositionsCosts.TryGetValue((i, j), out int cost))
+                    {
+                        string coststring = cost.ToString("D6");
+                        row.Add(' ');
+                        row.AddRange(coststring.ToCharArray());
+                    } else
+                    {
+                        row.Add(matrix[i][j]);
+                        row.Add(matrix[i][j]);
+                        row.Add(matrix[i][j]);
+                        row.Add(matrix[i][j]);
+                        row.Add(matrix[i][j]);
+                        row.Add(matrix[i][j]);
+                        row.Add(matrix[i][j]);
+                    }
+                }
+                map.Add(row);
+            }
+            PrintMap(map);
+        }
+
+        private void PrintMapWithPath(List<List<char>> matrix, List<(int, int)> visitedPositions)
+        {
+            List<List<char>> map = new List<List<char>>();
+            List<char> visited = new List<char>() { ' ' };
+            for (int i = 0; i < matrix[0].Count; i++)
+            {
+                char c = GetIndexforMatrix(i);
+                visited.Add(c);
+            }
+            map.Add(visited);
+            for (int i = 0; i < matrix.Count; i++)
+            {
+                char c = GetIndexforMatrix(i);
+
+                List<char> row = new List<char>();
+                row.Add(c);
+                for (int j = 0; j < matrix[0].Count; j++)
+                {
+                    if (visitedPositions.Contains((i, j)))
+                    {
+                        row.Add('*');
+                    } else
+                    {
+                        row.Add(matrix[i][j]);
+                    }
+                }
+                map.Add(row);
+            }
+            PrintMap(map);
+        }
+
+        private char GetIndexforMatrix(int i)
+        {
+            if (i % 10 == 0)
+            {
+                return '0';
+
+            }
+            if (i % 10 == 5)
+            {
+                return '5';
+
+            }
+            return ' ';
+        }
+
+        private bool CheckForSpace((int, int) myPosition, (int, int) direction, List<List<char>> matrix)
+        {
+            if (matrix[myPosition.Item1 + direction.Item1][myPosition.Item2 + direction.Item2] == '#')
+            {
+                return false;
+            }
+            return true;
+        }
+
         private (int, int) MoveRobotLarge(List<List<char>> matrix, (int, int) robot, char direction)
         {
             (int, int) movedirection = FindMoveDirection(direction);
 
             bool canmove = false;
-            List<(int,int)> checkpos = new List<(int, int)>() { (robot.Item1 + movedirection.Item1, robot.Item2 + movedirection.Item2) };
-            List < (int, int) > checkedpos = new List<(int, int)>();
+            List<(int, int)> checkpos = new List<(int, int)>() { (robot.Item1 + movedirection.Item1, robot.Item2 + movedirection.Item2) };
+            List<(int, int)> checkedpos = new List<(int, int)>();
             while (checkpos.All(c => matrix[c.Item1][c.Item2] != '#'))
             {
                 if (checkpos.All(c => matrix[c.Item1][c.Item2] == '.'))
@@ -460,7 +752,7 @@ namespace MyAdventTests
                     break;
                 }
                 List<(int, int)> newcheckpos = new List<(int, int)>();
- 
+
                 foreach (var pos in checkpos)
                 {
                     if (movedirection.Item1 == 0)
@@ -483,25 +775,25 @@ namespace MyAdventTests
                     if (matrix[pos.Item1][pos.Item2] == '[')
                     {
                         AddNewPosition(movedirection, newcheckpos, pos, checkedpos);
-                        AddNewPosition((0 , +1), newcheckpos, pos,checkedpos);
+                        AddNewPosition((0, +1), newcheckpos, pos, checkedpos);
                     }
                 }
                 checkedpos.AddRange(checkpos);
                 checkpos = newcheckpos;
-            }       
+            }
 
-            List<(int, int)> moveUp = new List<(int, int)>() { robot};
+            List<(int, int)> moveUp = new List<(int, int)>() { robot };
             HashSet<((int, int), (int, int))> Allmoves = new HashSet<((int, int), (int, int))>();
             if (canmove)
             {
                 while (moveUp.Count > 0)
                 {
-                    if (matrix[moveUp[0].Item1+movedirection.Item1][moveUp[0].Item2+movedirection.Item2] == '[')
+                    if (matrix[moveUp[0].Item1 + movedirection.Item1][moveUp[0].Item2 + movedirection.Item2] == '[')
                     {
                         moveUp.Add((moveUp[0].Item1 + movedirection.Item1, moveUp[0].Item2 + movedirection.Item2));
                         if (movedirection.Item1 != 0)
                         {
-                            moveUp.Add((moveUp[0].Item1 + movedirection.Item1 , moveUp[0].Item2 + movedirection.Item2 +1));
+                            moveUp.Add((moveUp[0].Item1 + movedirection.Item1, moveUp[0].Item2 + movedirection.Item2 + 1));
                         }
                     }
                     if (matrix[moveUp[0].Item1 + movedirection.Item1][moveUp[0].Item2 + movedirection.Item2] == ']')
@@ -509,13 +801,13 @@ namespace MyAdventTests
                         moveUp.Add((moveUp[0].Item1 + movedirection.Item1, moveUp[0].Item2 + movedirection.Item2));
                         if (movedirection.Item1 != 0)
                         {
-                            moveUp.Add((moveUp[0].Item1 + movedirection.Item1, moveUp[0].Item2 + movedirection.Item2-1));
+                            moveUp.Add((moveUp[0].Item1 + movedirection.Item1, moveUp[0].Item2 + movedirection.Item2 - 1));
                         }
                     }
                     Allmoves.Add((moveUp[0], movedirection));
                     moveUp.RemoveAt(0);
                 }
-                while(Allmoves.Count > 0)
+                while (Allmoves.Count > 0)
                 {
                     var move = Allmoves.Last();
                     var position = move.Item1;
@@ -531,7 +823,7 @@ namespace MyAdventTests
 
         }
 
-        private static void AddNewPosition((int, int) movedirection, List<(int, int)> newcheckpos, (int, int) pos, List<(int, int)> checkedPos )
+        private static void AddNewPosition((int, int) movedirection, List<(int, int)> newcheckpos, (int, int) pos, List<(int, int)> checkedPos)
         {
             if (checkedPos.Contains((pos.Item1 + movedirection.Item1, pos.Item2 + movedirection.Item2)))
             {
@@ -577,13 +869,13 @@ namespace MyAdventTests
             return newMap;
         }
 
-        private (int, int) FindRobotInMap(List<List<char>> matrix)
+        private (int, int) FindCharInMap(List<List<char>> matrix, char c)
         {
             for (int i = 0; matrix.Count > i; i++)
             {
                 for (int j = 0; matrix[0].Count > j; j++)
                 {
-                    if (matrix[i][j] == '@')
+                    if (matrix[i][j] == c)
                     {
                         return (i, j);
                     }
@@ -597,9 +889,9 @@ namespace MyAdventTests
         {
             PrintMap(matrix, ' ');
         }
-        private void PrintMap(List<List<char>> matrix,char c)
+        private void PrintMap(List<List<char>> matrix, char c)
         {
-            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\15Out.txt", c + "\n");
+            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", c + "\n");
             for (int i = 0; matrix.Count > i; i++)
             {
                 string line = "";
@@ -607,9 +899,9 @@ namespace MyAdventTests
                 {
                     line += matrix[i][j];
                 }
-                File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\15Out.txt", line + "\n");
+                File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", line + "\n");
             }
-            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\15Out.txt", "\n");
+            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", "\n");
         }
 
         private (int, int) MoveRobot(List<List<char>> matrix, (int, int) robot, char direction)
@@ -942,6 +1234,65 @@ namespace MyAdventTests
             (0,1),
             (1,0),
         };
+
+        private void RunInTheMazeSlow(List<List<char>> matrix, (int, int) myPosition, (int, int) direction, (int, int) end, List<(int, int)> visitedPositions, int cost)
+        {
+
+
+
+            // CreateLog 
+            if (visitedPositions.Contains(myPosition) || cost >= TotalCost)
+            {
+
+                //File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"Map Costs At wrong End{cost}\n");
+                //PrintMapWithPath(matrix, visitedPositions);
+                return;
+            }
+
+            visitedPositions.Add(myPosition);
+
+            //CheckCost
+            if (myPosition == end)
+            {
+                if (cost < TotalCost)
+                {
+
+                    TotalCost = cost;
+                    File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"New TotalCosts{TotalCost}\n");
+
+                }
+                //File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"Map Costs At End{cost}\n");
+                PrintMapWithPath(matrix, visitedPositions);
+                return;
+            }
+            List<(int, int)> visitedright = new List<(int, int)>();
+            List<(int, int)> visitedleft = new List<(int, int)>();
+            visitedleft.AddRange(visitedPositions);
+            visitedright.AddRange(visitedPositions);
+
+            // RunDeeper
+            if (CheckForSpace(myPosition, direction, matrix))
+            {
+                RunInTheMazeSlow(matrix, (myPosition.Item1 + direction.Item1, myPosition.Item2 + direction.Item2), direction, end, visitedPositions, cost + 1);
+            }
+            List<(int, int)> newdirections;
+            if (direction.Item1 == 0)
+            {
+                newdirections = new List<(int, int)>() { (-1, 0), (1, 0) };
+            } else
+            {
+                newdirections = new List<(int, int)>() { (0, 1), (0, -1) };
+            }
+
+            if (CheckForSpace(myPosition, newdirections[0], matrix))
+            {
+                RunInTheMazeSlow(matrix, (myPosition.Item1 + newdirections[0].Item1, myPosition.Item2 + newdirections[0].Item2), newdirections[0], end, visitedright, cost + 1001);
+            }
+            if (CheckForSpace(myPosition, newdirections[1], matrix))
+            {
+                RunInTheMazeSlow(matrix, (myPosition.Item1 + newdirections[1].Item1, myPosition.Item2 + newdirections[1].Item2), newdirections[1], end, visitedleft, cost + 1001);
+            }
+        }
     }
 }
 
