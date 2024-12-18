@@ -14,7 +14,7 @@ namespace MyAdventTests
         [TestInitialize]
         public void Setup()
         {
-
+            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt");
         }
 
         [TestMethod]
@@ -458,22 +458,91 @@ namespace MyAdventTests
         }
 
         [TestMethod]
-        public void Day16B()
+        public void Day18A()
         {
-            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt");
-            var matrix = FileReader.LoadFileIntoAStringMatrix("16Test3.txt");
-            var start = FindCharInMap(matrix, 'S');
-            var end = FindCharInMap(matrix, 'E');
+
+            List<(int, int)> values = FileReader.LoadCoordinatesFromFile("18A.txt");
+            int mapsize = 71;
+            List<List<char>> map = GenerateMapWithPositions(mapsize, values.Take(1024).ToList());
+            var start = (1, 1);
+            var end = (mapsize, mapsize);
             List<(int, int)> visitedPositions = new List<(int, int)>();
             int cost = 1;
             var direction = (0, 1);
             TotalCost = 121452;
-            RunInTheMaze(matrix, start, direction, end, visitedPositions, cost);
-            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"Map Costs At End{cost}\n");
-            Assert.AreEqual(105508, TotalCost);
+            map[end.Item1][end.Item2] = 'E';
+            PrintMap(map);
+            RunInTheMaze(map, start, direction, end, visitedPositions, cost);
+            Assert.AreEqual(294, TotalCost);
         }
 
-        private void RunInTheMaze(List<List<char>> matrix, (int, int) myPosition, (int, int) direction, (int, int) end, List<(int, int)> visitedPositions, int cornerCosts)
+        [TestMethod]
+        public void Day18B()
+        {
+            List<(int, int)> values = FileReader.LoadCoordinatesFromFile("18A.txt");
+            int mapsize = 71;
+            List<List<char>> map = GenerateMapWithPositions(mapsize, values.Take(1024).ToList());
+            var start = (1, 1);
+            var end = (mapsize, mapsize);
+            List<(int, int)> visitedPositions = new List<(int, int)>();
+            int cost = 1;
+            var direction = (0, 1);
+            TotalCost = 121452;
+            map[end.Item1][end.Item2] = 'E';
+            PrintMap(map);
+            int counter = 1024;
+            for (int i = 1025; i < values.Count; i++)
+            {
+                TotalCost = 121452;
+                map[values[i].Item2+1][values[i].Item1+1] = '#';
+                RunInTheMaze(map, start, direction, end, visitedPositions, cost);
+                if (TotalCost == 121452)
+                {
+                    PrintMap(map);
+                    Assert.AreEqual((values[i].Item1, values[i].Item2), (31,22));
+                    break;
+                }
+            }
+        }
+
+
+
+        private List<List<char>> GenerateMapWithPositions(int mapsize, List<(int, int)> values)
+        {
+
+            List<List<char>> map = new List<List<char>>();
+            List<char> row = new List<char>();
+            for (int k = 0; k < mapsize+2; k++)
+            {
+                row.Add('#');
+            }
+            map.Add(row);
+            for (int i = 0; i < mapsize; i++)
+            {
+                row = new List<char>();
+                row.Add('#');
+                for (int j = 0; j < mapsize; j++)
+                {
+
+                    if (values.Contains((j, i)))
+                        row.Add('#');
+                    else
+                        row.Add('.');
+                }
+                row.Add('#');
+                map.Add(row);
+            }
+            row = new List<char>();
+            for (int k = 0; k < mapsize + 2; k++)
+            {
+                row.Add('#');
+            }
+            map.Add(row);
+            return map;
+        }
+
+
+        public void RunInTheMaze(List<List<char>> matrix, (int, int) myPosition, (int, int) direction, (int, int) end, List<(int, int)> visitedPositions, int cornerCosts)
         {
             List<((int, int), int, (int, int))> notcheckeddirections = new List<((int, int), int, (int, int))>() { (myPosition, 0, direction) };
             Dictionary<(int, int), int> visitedPositionsCosts = new Dictionary<(int, int), int>();
@@ -533,7 +602,7 @@ namespace MyAdventTests
                     {
 
                         TotalCost = checkcost;
-                        File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"New TotalCosts{TotalCost}\n");
+                        //File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"New TotalCosts{TotalCost}\n");
 
                     }
                     //File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"Map Costs At End{cost}\n");
@@ -564,13 +633,15 @@ namespace MyAdventTests
                 {
                     // visitedPositionsCosts[position] = checkcost+1000;
                 }
-                //   PrintMapWithPath(matrix, visitedPositionsCosts.Keys.ToList());
+
 
             }
 
+            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"This run has TotalCosts of: {TotalCost}\n");
+
             List<((int, int), int)> checkerList = new List<((int, int), int)>() { (end, TotalCost) };
             HashSet<(int, int)> thePATH = new HashSet<(int, int)>();
-            while (checkerList.Count > 0)
+            while (checkerList.Count > 0 && cornerCosts>1)
             {
 
                 var checker = checkerList[0].Item1;
@@ -594,10 +665,10 @@ namespace MyAdventTests
                             directionsToGo.Add((d, newcost));
                     }
                 }
-                if (directionsToGo.Count > 1)
-                {
-                    File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"The PATH divides into {directionsToGo.Count} at {checker} places\n");
-                }
+                //if (directionsToGo.Count > 1)
+                //{
+                //    File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"The PATH divides into {directionsToGo.Count} at {checker} places\n");
+                //}
 
                 if (directionsToGo.Count == 0)
                 {
@@ -617,9 +688,9 @@ namespace MyAdventTests
                 }
 
             }
-            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"The PATH contains {thePATH.Count} places\n");
-            PrintMapWithPath(matrix, thePATH.ToList());
-            CreateCostmap(matrix, visitedPositionsCosts);
+            //File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"The PATH contains {thePATH.Count} places\n");
+            //PrintMapWithPath(matrix, thePATH.ToList());
+            //CreateCostmap(matrix, visitedPositionsCosts);
 
         }
 

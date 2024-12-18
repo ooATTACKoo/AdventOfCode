@@ -49,6 +49,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AdventOfCode17-24.cs" />
     <Compile Include="AdventOfCode10-16.cs" />
     <Compile Include="AdventOfCode1-9.cs" />
     <Compile Include="FileReader.cs" />

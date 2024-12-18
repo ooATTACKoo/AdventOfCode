@@ -224,5 +224,56 @@ namespace MyAdventTests
             }
             return robots;
         }
+
+        internal static (int, int, int, List<int>) LoadRegisters(string v)
+        {
+            List<int> numbers = new List<int>();
+            var lines = System.IO.File.ReadAllLines(relativePath + v);
+            List<int> registers = new List<int>();
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("Register"))
+                {
+                    string pattern = @":\s*(-?\d+)";
+                    Match match = Regex.Match(line, pattern);
+                    registers.Add(int.Parse(match.Groups[1].Value));
+                }
+                if (line.StartsWith("Program:"))
+                {
+                    string pattern = @"\d+";
+                    numbers = ExtractNumbers(line, pattern);
+                }
+            }
+            return (registers[0], registers[1], registers[2], numbers);
+        }
+
+        public static List<int> ExtractNumbers(string input, string pattern)
+        {
+            List<int> numbers = new List<int>();
+            Match match = Regex.Match(input, pattern);
+
+            while (match.Success)
+            {
+                numbers.Add(int.Parse(match.Value));
+                match = match.NextMatch();
+            }
+
+            return numbers;
+        }
+
+        internal static List<(int, int)> LoadCoordinatesFromFile(string v)
+        {
+            List<(int, int)> coordinates = new List<(int, int)>();
+            var lines = System.IO.File.ReadAllLines(relativePath + v);
+            foreach (var line in lines)
+            {
+                string pattern = @"(-?\d+),\s*(-?\d+)";
+                Match match = Regex.Match(line, pattern);
+                int x = int.Parse(match.Groups[1].Value);
+                int y = int.Parse(match.Groups[2].Value);
+                coordinates.Add((x, y));
+            }   
+            return coordinates;
+        }
     }
 }
