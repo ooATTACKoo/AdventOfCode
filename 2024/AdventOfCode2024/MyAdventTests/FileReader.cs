@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace MyAdventTests
@@ -274,6 +275,25 @@ namespace MyAdventTests
                 coordinates.Add((x, y));
             }   
             return coordinates;
+        }
+
+        internal static (List<string>, List<string>) LoadTowlPattern(string v)
+        {
+            var lines = System.IO.File.ReadAllLines(relativePath + v).ToList();
+            var pattern = lines[0];
+            List<string> rules = pattern.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+            rules = rules.Select(x => x.Trim()).ToList();
+            
+            lines.RemoveAt(0);
+            List<string> data = new List<string>();
+            foreach (var line in lines)
+            {
+                if (line.Length>0)
+                {
+                    data.Add(line);
+                }
+            }
+            return (rules, data);
         }
     }
 }

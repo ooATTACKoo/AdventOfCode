@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace MyAdventTests
 
@@ -24,7 +25,7 @@ namespace MyAdventTests
         [TestMethod]
         public void Day17A()
         {
-            (int, int, int, List<int>) data = FileReader.LoadRegisters("17Test.txt");
+            (int, int, int, List<int>) data = FileReader.LoadRegisters("17A.txt");
             RegisterA = data.Item1;
             RegisterB = data.Item2;
             RegisterC = data.Item3;
@@ -94,7 +95,7 @@ namespace MyAdventTests
                 else
                     jump = false;
             }
-            Assert.AreEqual("2,4,1,7,7,5,0,3,4,4,1,7,5,5,3,0", output); // 4,6,3,5,6,3,5,2,1,0
+            Assert.AreEqual("2,1,0,1,7,2,5,0,3", output); // 4,6,3,5,6,3,5,2,1,0
         }
 
         [TestMethod]
@@ -189,7 +190,91 @@ namespace MyAdventTests
             }
             Assert.AreEqual("2,4,1,7,7,5,0,3,4,4,1,7,5,5,3,0", output); // 4,6,3,5,6,3,5,2,1,0
         }
-       
+
+        private int TowelCounter= 0;
+
+        [TestMethod]
+        public void Day19A()
+        {
+            (List<string>, List<string>) data = FileReader.LoadTowlPattern("19A.txt");
+            List<string> pattern = data.Item1;
+            List<string> designs = data.Item2;
+            int counter= 0;
+            foreach (var design in designs)
+            {
+                if (SearchWithPatternCache(pattern, design)>0)
+                {
+                    counter++;
+                }
+            }
+
+            Assert.AreEqual(216, counter);
+        }
+
+        [TestMethod]
+        public void Day19B()
+        {
+            (List<string>, List<string>) data = FileReader.LoadTowlPattern("19A.txt");
+            List<string> pattern = data.Item1;
+            List<string> designs = data.Item2;
+            TowelCounter = 0;
+            long counter = 0;
+            foreach (var design in designs)
+            {
+                counter += (SearchWithPatternCache(pattern, design));              
+            }
+
+
+            Assert.AreEqual(603191454138773, counter);
+        }
+
+        Dictionary<string, long> Cache = new Dictionary<string, long>();
+
+        private long SearchWithPatternCache(List<string> pattern, string design)
+        {
+            if (Cache.TryGetValue(design, out long value))
+            {
+                return value;
+            }
+            List<string> foundPattern = FindAllPattern(pattern, design);
+            if (foundPattern.Count == 0)
+            {  return 0; }
+
+            long patterncounter = 0;
+            foreach (var thispattern in foundPattern)
+            {
+                var newdesign = design.Substring(thispattern.Length);
+                if (newdesign.Length == 0)
+                {
+                    patterncounter++;
+                    continue;
+                }
+
+                patterncounter += SearchWithPatternCache(pattern, newdesign);
+            }
+
+            if (Cache.ContainsKey(design))
+            {
+                Cache[design] = patterncounter;
+            } else
+            {
+                Cache.Add(design, patterncounter);
+            }
+            return patterncounter;
+        }
+
+        private List<string> FindAllPattern(List<string> pattern, string design)
+        {
+            List<string> foundPattern = new List<string>();
+            foreach (var pat in pattern)
+            {
+                if (design.StartsWith(pat))
+                {
+                    foundPattern.Add(pat);
+                }
+            }
+            return foundPattern;
+        }
 
         private long XORBitwise(long num1, long num2)
         {
