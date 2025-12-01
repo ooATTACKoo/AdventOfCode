@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace MyAdventTests
 
@@ -453,7 +454,7 @@ namespace MyAdventTests
             int cost = 1001;
             var direction = (0, 1);
             TotalCost = 121452;
-            RunInTheMaze(matrix, start, direction, end, visitedPositions, cost);
+            RunInTheMaze(matrix, start, direction, end, visitedPositions, cost, true);
             Assert.AreEqual(105508, TotalCost);
         }
 
@@ -472,7 +473,7 @@ namespace MyAdventTests
             TotalCost = 121452;
             map[end.Item1][end.Item2] = 'E';
             PrintMap(map);
-            RunInTheMaze(map, start, direction, end, visitedPositions, cost);
+            RunInTheMaze(map, start, direction, end, visitedPositions, cost, true);
             Assert.AreEqual(294, TotalCost);
         }
 
@@ -494,25 +495,269 @@ namespace MyAdventTests
             for (int i = 1025; i < values.Count; i++)
             {
                 TotalCost = 121452;
-                map[values[i].Item2+1][values[i].Item1+1] = '#';
-                RunInTheMaze(map, start, direction, end, visitedPositions, cost);
+                map[values[i].Item2 + 1][values[i].Item1 + 1] = '#';
+                RunInTheMaze(map, start, direction, end, visitedPositions, cost, false);
                 if (TotalCost == 121452)
                 {
                     PrintMap(map);
-                    Assert.AreEqual((values[i].Item1, values[i].Item2), (31,22));
+                    Assert.AreEqual((values[i].Item1, values[i].Item2), (31, 22));
                     break;
                 }
             }
         }
 
+        [TestMethod]
+        public void Day20A()
+        {
+            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt");
+            var matrix = FileReader.LoadFileIntoAStringMatrix("20Test.txt");
+            var start = FindCharInMap(matrix, 'S');
+            var end = FindCharInMap(matrix, 'E');
+            List<(int, int)> visitedPositions = new List<(int, int)>();
+            int cost = 1;
+            var direction = (0, 1);
+            TotalCost = 121452;
+            RunInTheMaze(matrix, start, direction, end, visitedPositions, cost, true);
+            int initialCost = TotalCost;
+            int counter = 0;
+            int counter2= 0;
+            HashSet<(int, int)> originalPath = new HashSet<(int, int)>();
+            HashSet<(int, int)> checkedshortcut = new HashSet<(int, int)>();
+            originalPath.UnionWith(thePATH);
+            foreach (var item in originalPath)
+            {
+                counter2++;
+                var newmatrix = new List<List<char>>(matrix);
+                foreach (var d in directions)
+                {
+                    var d1pos = (item.Item1 + d.Item1, item.Item2 + d.Item2);
 
+                    if (checkedshortcut.Contains(d1pos))
+                    {
+                        continue;
+                    }
+                    checkedshortcut.Add(d1pos);
+                    if (CheckLegalePosition(newmatrix, d1pos) && newmatrix[d1pos.Item1][d1pos.Item2] == '#')
+                    {
+                        newmatrix[d1pos.Item1][d1pos.Item2] = '.';
+                        TotalCost = 121452;
+                        RunInTheMaze(newmatrix, start, direction, end, visitedPositions, cost, true);
+                        if (TotalCost <= initialCost - 100)
+                        {
+                            //File.AppendAllLines(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", new List<string>() { $"New Shortcut {d1pos}" });
+
+                            counter++;
+                        }
+
+                        newmatrix[d1pos.Item1][d1pos.Item2] = '#';
+                    }
+                }
+            }
+            Assert.AreEqual(5, 1406);
+        }
+
+        [TestMethod]
+        public void Day20B()
+        {
+            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt");
+            var matrix = FileReader.LoadFileIntoAStringMatrix("20A.txt");
+            var start = FindCharInMap(matrix, 'S');
+            var end = FindCharInMap(matrix, 'E');
+            List<(int, int)> visitedPositions = new List<(int, int)>();
+            int cost = 1;
+            var direction = (0, 1);
+            TotalCost = 121452;
+            RunInTheMaze(matrix, start, direction, end, visitedPositions, cost, true);
+            int initialCost = TotalCost;
+            int counter = 0;
+            int counter2 = 0;
+            HashSet<(int, int)> originalPath = new HashSet<(int, int)>();
+            HashSet<(int, int)> checkedshortcut = new HashSet<(int, int)>();
+            originalPath.UnionWith(thePATH);
+            foreach (var d1pos in originalPath)
+            {
+                counter2++;
+                var newmatrix = new List<List<char>>(matrix);
+                
+
+                    if (checkedshortcut.Contains(d1pos))
+                    {
+                        continue;
+                    }
+                    checkedshortcut.Add(d1pos);
+                    if (CheckLegalePosition(newmatrix, d1pos))
+                    {
+                        newmatrix[d1pos.Item1][d1pos.Item2] = '.';
+                        TotalCost = 121452;
+                    File.AppendAllLines(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", new List<string>() { $"TestPosition {d1pos}" });
+                    RunInTheMazeWithCheat(newmatrix, start, direction, end, d1pos, 0);
+                        if (TotalCost <= initialCost-50)
+                        {
+                            File.AppendAllLines(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", new List<string>() { $"New Shortcut {d1pos}" });
+
+                            counter++;
+                        }
+
+                        newmatrix[d1pos.Item1][d1pos.Item2] = '#';
+                    }
+                
+            }
+            Assert.AreEqual(counter, 1406);
+        }
+
+        [TestMethod]
+        public void Day20B2()
+        {
+            File.Delete(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt");
+            var matrix = FileReader.LoadFileIntoAStringMatrix("20A.txt");
+            var start = FindCharInMap(matrix, 'S');
+            var end = FindCharInMap(matrix, 'E');
+            List<(int, int)> visitedPositions = new List<(int, int)>();
+            int cost = 1;
+            var direction = (0, 1);
+            TotalCost = 121452;
+            RunInTheMaze(matrix, start, direction, end, visitedPositions, cost, true);
+            int initialCost = TotalCost;
+            int counter = 0;
+            int counter2 = 0;
+            HashSet<(int, int)> originalPath = new HashSet<(int, int)>();
+            HashSet<(int, int)> checkedshortcut = new HashSet<(int, int)>();
+            originalPath.UnionWith(thePATH);
+
+                counter2++;
+                var newmatrix = new List<List<char>>(matrix);
+
+
+
+
+                    TotalCost = 121452;
+                    RunInTheMazeWithCheat(newmatrix, start, direction, end, (3,1), 0);
+                    if (TotalCost <= initialCost - 100)
+                    {
+                        //File.AppendAllLines(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", new List<string>() { $"New Shortcut {d1pos}" });
+
+                        counter++;
+                    }
+
+
+            
+            Assert.AreEqual(5, 1406);
+        }
+
+        private void RunInTheMazeWithCheat(List<List<char>> matrix, (int, int) start, (int, int) direction, (int, int) end, (int, int) cheatpos, int cheatsteps)
+        {
+            List<((int, int), int, (int, int),int)> notcheckeddirections = new List<((int, int), int, (int, int),int)>() { (start, 0, direction, cheatsteps) };
+            Dictionary<(int, int), int> visitedPositionsCosts = new Dictionary<(int, int), int>();
+            while (notcheckeddirections.Count > 0)
+            {
+
+                var check = notcheckeddirections[0];
+                var position = check.Item1;
+                cheatsteps = check.Item4;
+                if (position == cheatpos)
+                {
+                    cheatsteps = 20;
+                }
+                var checkdirection = check.Item3;
+                var checkcost = check.Item2;
+
+                notcheckeddirections.RemoveAt(0);
+
+                if (visitedPositionsCosts.TryGetValue(position, out int poscost))
+                {
+                    bool better = false;
+                    if (position == end && poscost > checkcost)
+                    {
+                        visitedPositionsCosts[position] = checkcost;
+                        better = true;
+                    }
+
+                    if (CheckForSpaceWithCheat(cheatsteps,position, checkdirection, matrix)
+                        && poscost > checkcost)
+                    {
+                        visitedPositionsCosts[position] = checkcost;
+                        better = true;
+                    }
+                    if (!better)
+                    {
+                        List<(int, int)> newdir = OtherDirections(checkdirection);
+                        if (CheckForSpaceWithCheat(cheatsteps, position, checkdirection, matrix) && poscost > checkcost)
+                        {
+                            visitedPositionsCosts[position] = checkcost;
+                            better = true;
+                        }
+                        if (CheckForSpaceWithCheat(cheatsteps, position, checkdirection, matrix) && poscost > checkcost)
+                        {
+                            visitedPositionsCosts[position] = checkcost;
+                            better = true;
+                        }
+                    }
+                    if (!better && cheatsteps==0)
+                    { continue; }
+                }
+
+                if (!visitedPositionsCosts.ContainsKey(position))
+                {
+                    visitedPositionsCosts.Add(position, checkcost);
+                    // File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"Position {position}: cost {checkcost}\n");
+                }
+
+                if (position == end)
+                {
+                    if (checkcost < TotalCost)
+                    {
+
+                        TotalCost = checkcost;
+                        //File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"New TotalCosts{TotalCost}\n");
+
+                    }
+                    CreateCostmap(matrix, visitedPositionsCosts);
+                    //File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"Map Costs At End{cost}\n");
+                    //PrintMapWithPath(matrix, visitedPositions);
+                    continue;
+                }
+
+
+                cheatsteps--;
+                if (CheckForSpaceWithCheat(cheatsteps, position, checkdirection, matrix))
+                {
+                    notcheckeddirections.Add(((position.Item1 + checkdirection.Item1, position.Item2 + checkdirection.Item2), checkcost + 1, checkdirection, cheatsteps));
+                }
+
+                List<(int, int)> newdirections = OtherDirections(checkdirection);
+                if (CheckForSpaceWithCheat(cheatsteps, position, newdirections[0], matrix))
+                {
+                    notcheckeddirections.Add(((position.Item1 + newdirections[0].Item1, position.Item2 + newdirections[0].Item2), checkcost+1, newdirections[0], cheatsteps));
+                }
+                if (CheckForSpaceWithCheat(cheatsteps, position, newdirections[1], matrix))
+                {
+                    notcheckeddirections.Add(((position.Item1 + newdirections[1].Item1, position.Item2 + newdirections[1].Item2), checkcost+1, newdirections[1],cheatsteps));
+                }
+
+
+            }
+        }
+
+        private static bool CheckLegalePosition(List<List<char>> newmatrix, (int, int) d2pos)
+        {
+            return d2pos.Item1 > 0 && d2pos.Item2 > 0 && d2pos.Item1 < newmatrix[0].Count - 1 && d2pos.Item2 < newmatrix.Count - 1;
+        }
+
+        private bool CheckForSpaceWithCheat(int cheatsteps,(int,int)position, (int, int) direction, List<List<char>> matrix)
+        {
+            if (position.Item1+direction.Item1 < 1 || position.Item1 + direction.Item1 >= matrix[0].Count-1 || position.Item2 + direction.Item2 < 1 || position.Item2 + direction.Item2 >= matrix.Count-1)
+            {
+                return false;
+            }
+            return cheatsteps >= 0 || CheckForSpace(position, direction, matrix);
+        }
 
         private List<List<char>> GenerateMapWithPositions(int mapsize, List<(int, int)> values)
         {
 
             List<List<char>> map = new List<List<char>>();
             List<char> row = new List<char>();
-            for (int k = 0; k < mapsize+2; k++)
+            for (int k = 0; k < mapsize + 2; k++)
             {
                 row.Add('#');
             }
@@ -542,10 +787,14 @@ namespace MyAdventTests
         }
 
 
-        public void RunInTheMaze(List<List<char>> matrix, (int, int) myPosition, (int, int) direction, (int, int) end, List<(int, int)> visitedPositions, int cornerCosts)
+
+        private HashSet<(int, int)> thePATH = new HashSet<(int, int)>();
+
+        public void RunInTheMaze(List<List<char>> matrix, (int, int) myPosition, (int, int) direction, (int, int) end, List<(int, int)> visitedPositions, int cornerCosts, bool withPath)
         {
             List<((int, int), int, (int, int))> notcheckeddirections = new List<((int, int), int, (int, int))>() { (myPosition, 0, direction) };
             Dictionary<(int, int), int> visitedPositionsCosts = new Dictionary<(int, int), int>();
+            int costOfCornersWithoutStep = cornerCosts - 1;
             while (notcheckeddirections.Count > 0)
             {
                 var check = notcheckeddirections[0];
@@ -563,10 +812,11 @@ namespace MyAdventTests
                 {
                     bool better = false;
                     if (position == end && poscost > checkcost)
-                    { visitedPositionsCosts[position] = checkcost;
+                    {
+                        visitedPositionsCosts[position] = checkcost;
                         better = true;
                     }
-                        
+
                     if (CheckForSpace(position, checkdirection, matrix) && poscost > checkcost)
                     {
                         visitedPositionsCosts[position] = checkcost;
@@ -575,14 +825,14 @@ namespace MyAdventTests
                     if (!better)
                     {
                         List<(int, int)> newdir = OtherDirections(checkdirection);
-                        if (CheckForSpace(position, newdir[0], matrix) && poscost > checkcost + 1000)
+                        if (CheckForSpace(position, newdir[0], matrix) && poscost > checkcost + costOfCornersWithoutStep)
                         {
-                            visitedPositionsCosts[position] = checkcost + 1000;
+                            visitedPositionsCosts[position] = checkcost + costOfCornersWithoutStep;
                             better = true;
                         }
-                        if (CheckForSpace(position, newdir[1], matrix) && poscost > checkcost + 1000)
+                        if (CheckForSpace(position, newdir[1], matrix) && poscost > checkcost + costOfCornersWithoutStep)
                         {
-                            visitedPositionsCosts[position] = checkcost + 1000;
+                            visitedPositionsCosts[position] = checkcost + costOfCornersWithoutStep;
                             better = true;
                         }
                     }
@@ -637,11 +887,11 @@ namespace MyAdventTests
 
             }
 
-            File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"This run has TotalCosts of: {TotalCost}\n");
+            //File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"This run has TotalCosts of: {TotalCost}\n");
 
             List<((int, int), int)> checkerList = new List<((int, int), int)>() { (end, TotalCost) };
-            HashSet<(int, int)> thePATH = new HashSet<(int, int)>();
-            while (checkerList.Count > 0 && cornerCosts>1)
+
+            while (checkerList.Count > 0 && withPath)
             {
 
                 var checker = checkerList[0].Item1;
@@ -661,7 +911,7 @@ namespace MyAdventTests
                     if (visitedPositionsCosts.ContainsKey((checker.Item1 + d.Item1, checker.Item2 + d.Item2)))
                     {
                         visitedPositionsCosts.TryGetValue((checker.Item1 + d.Item1, checker.Item2 + d.Item2), out int newcost);
-                        if ((newcost % 1000) + 1 == checkercosts % 1000 && (newcost < oldcheckercosts || oldcheckercosts - newcost ==-998))
+                        if (costOfCornersWithoutStep == 0 || (newcost % costOfCornersWithoutStep) + 1 == checkercosts % costOfCornersWithoutStep && (newcost < oldcheckercosts || oldcheckercosts - newcost == 2 - costOfCornersWithoutStep))
                             directionsToGo.Add((d, newcost));
                     }
                 }
@@ -681,7 +931,7 @@ namespace MyAdventTests
                 int oldCostsFromStepBefore = visitedPositionsCosts[checker];
                 foreach (var d in directionsToGo)
                 {
-                    if (directionsToGo.Count==1|| (d.Item2 % 1000 == mincost.Item2 % 1000  && d.Item2 < oldcheckercosts) )
+                    if (directionsToGo.Count == 1 || ((costOfCornersWithoutStep == 0 || d.Item2 % costOfCornersWithoutStep == mincost.Item2 % costOfCornersWithoutStep) && d.Item2 < oldcheckercosts))
                     {
                         checkerList.Add(((checker.Item1 + d.Item1.Item1, checker.Item2 + d.Item1.Item2), oldCostsFromStepBefore));
                     }
@@ -689,8 +939,11 @@ namespace MyAdventTests
 
             }
             //File.AppendAllText(@"C:\Repos\GitHub\AdventOfCode\2024\Inputs\DebugOutput.txt", $"The PATH contains {thePATH.Count} places\n");
-            //PrintMapWithPath(matrix, thePATH.ToList());
-            //CreateCostmap(matrix, visitedPositionsCosts);
+            if (false&&TotalCost <= 64)
+            {
+                PrintMapWithPath(matrix, thePATH.ToList());
+                CreateCostmap(matrix, visitedPositionsCosts);
+            }
 
         }
 

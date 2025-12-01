@@ -322,5 +322,47 @@ namespace MyAdventTests
                 return RegisterC;
             return 7;
         }
+
+        [TestMethod]
+        public void changename()
+        {
+
+            // read in all files in folder C:\Repos\IMS_Neu\src\CsCode\IMS\FlexAnalytics\Bundles\NFRD\Cluster_4
+            string path = @"C:\Repos\IMS_Neu\src\CsCode\IMS\FlexAnalytics\Bundles\NFRD\Cluster_Annex12";
+            string[] files = Directory.GetFiles(path);
+            foreach (var file in files)
+            {
+                if (! file.Contains("_12"))
+                {
+                    continue;
+                }
+                List<string> newfile = new List<string>();
+                string[] content = File.ReadAllLines(file);
+                bool found = false;
+                foreach (var line in content)
+                {
+                    if (found)
+                        if (line.Contains("}"))
+                        {
+                            found = false;
+                                }
+                        else
+                        {
+                            continue;
+                        }
+                    if (line.Contains("RegisterSegmentDependency"))
+                    { 
+                        found = true;
+                        newfile.Add("           analyticsDependencyRegister.RegisterSegmentDependency(Guid, NfrdCommonDependencies.GetSegmentsUsedByAnnexAnalytics(PackageInfo));");
+                    }
+                    else
+                    {
+                        newfile.Add(line);
+                    }
+                }
+                File.WriteAllLines(file, newfile);
+                          
+            }
+        }
     }
 }
