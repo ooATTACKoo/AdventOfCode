@@ -3,6 +3,8 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Drawing;
+using ImageMagick;
 
 namespace MyAdventTests
 
@@ -123,7 +125,7 @@ namespace MyAdventTests
           string frontnumber = checknumber.Substring(0, checknumber.Length / 2);
           string endnumber = checknumber.Substring(checknumber.Length / 2, checknumber.Length / 2);
 
-          if (frontnumber == endnumber)
+          if (frontnumber.Equals(endnumber))
           {
             result += i;
           }
@@ -151,29 +153,240 @@ namespace MyAdventTests
         long endint = long.Parse(end);
         for (long i = startint; i <= endint; i++)
         {
-          string checknumber = i.ToString();
-          result = IdFinderByString(result, i, checknumber);
+           result = CheckIdForRepeatingStructure(result, i);
         }
 
       }
       Assert.AreEqual(result, 46769308485);
     }
 
-    private static long IdFinderByString(long result, long i, string checknumber)
+    [TestMethod]
+    public void Day3a()
     {
-      for (int splitpos = 1; splitpos <= checknumber.Length / 2; splitpos++)
+      string data = FileReader.LoadFileIntoOneString("2025/03A.txt");
+      List<string> lines = data.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
+      int second = 0;
+      int first = 0;
+      int result = 0;
+      foreach (string line in lines)
       {
-        if (checknumber.Length % splitpos != 0)
+        for (int i = 0; i < line.Length; i++)
+        {
+          int bat = int.Parse(line[i].ToString());
+          if (bat > first && i != line.Length - 1)
+          {
+            second = 0;
+            first = bat;
+          } else if (bat > second)
+          {
+            second = bat;
+          }
+        }
+        int jolt = (first * 10 + second);
+        first = second = 0;
+        result += jolt;
+      }
+      Assert.AreEqual(result, 17316);
+    }
+
+    [TestMethod]
+    public void Day3b()
+    {
+      string data = FileReader.LoadFileIntoOneString("2025/03A.txt");
+      List<string> lines = data.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
+      long result = 0;
+      foreach (string line in lines)
+      {
+        int killIx = -1;
+        string changedline = line;
+        for (int t = 0; t < line.Length-12; t++)
+        {
+          for (int i = 0; i < changedline.Length - 1; i++)
+          {
+            int before = int.Parse(changedline[i].ToString());
+            int after = int.Parse(changedline[i + 1].ToString());
+            if (before < after)
+            {
+              killIx = i;
+              break;
+            }
+            if (i == changedline.Length - 2)
+            {
+              killIx = i+1;
+            }
+          }
+          changedline = changedline.Remove(killIx, 1);
+        }
+
+        long jolt = long.Parse(changedline);
+        result += jolt;       
+
+      }
+      Assert.AreEqual(result, 171741365473332);
+    }
+
+    [TestMethod]
+    public void Day4a()
+    {
+      var matrix = FileReader.LoadFileIntoAStringMatrix("2025/04A.txt");
+      int counter = 0;
+      for (int row = 0; row < matrix.Count; row++)
+      {
+        var line = matrix[row];
+        for (int col = 0; col < line.Count; col++)
+        { 
+          if (line[col] != '@') {
+            continue;
+          }
+          int atCounter = CountSymbolsInMatrixAroundMe(matrix, row, col, '@');
+          if ( atCounter<4)
+          {
+            counter++;
+          }
+        }
+      }
+      Assert.AreEqual(1428, counter);
+    }
+
+    [TestMethod]
+    public void Day4b()
+    {
+      var matrix = FileReader.LoadFileIntoAStringMatrix("2025/04A.txt");
+      int counter = 0;
+      int imageprintcounter = 0;
+      bool changed = true;
+      List<string> imageFiles = new List<string>();
+      while (changed)
+      {
+        changed = false;
+        for (int row = 0; row < matrix.Count; row++)
+        {
+          var line = matrix[row];
+          for (int col = 0; col < line.Count; col++)
+          {
+            if (line[col] != '@')
+            {
+              continue;
+            }
+            int atCounter = CountSymbolsInMatrixAroundMe(matrix, row, col, '@');
+            if (atCounter < 4)
+            {
+              changed = true;
+              matrix[row][col] = '.';
+              imageprintcounter++;
+              counter++;
+              if (imageprintcounter % 20 == 0)
+              {
+                SaveMatrixAsImage(matrix, $"c:\\aoc\\Day4b_Step_{counter}.png");
+                imageFiles.Add($"c:\\aoc\\Day4b_Step_{counter}.png");
+              }
+
+            }
+          }
+
+        }
+        imageprintcounter = 0;
+        SaveMatrixAsImage(matrix, $"c:\\aoc\\Day4b_Step_{counter}.png");
+        imageFiles.Add($"c:\\aoc\\Day4b_Step_{counter}.png");
+      }
+      CreateGifFromImages(imageFiles.ToArray(), "c:\\aoc\\Day4b_AnimationBlue.gif");
+      foreach (var file in imageFiles)
+      {
+        File.Delete(file);
+      }
+      Assert.AreEqual(8936, counter);
+    }
+
+    void SaveMatrixAsImage(List<List<char>> matrix, string filename)
+    {
+      int cellSize = 10;
+      int width = matrix[0].Count * cellSize;
+      int height = matrix.Count * cellSize;
+      using (var bmp = new Bitmap(width, height))
+      using (var g = Graphics.FromImage(bmp))
+      {
+        g.Clear(Color.White);
+        for (int row = 0; row < matrix.Count; row++)
+        {
+          for (int col = 0; col < matrix[row].Count; col++)
+          {
+            Color color = matrix[row][col] == '@' ? Color.Yellow : Color.Blue;
+            g.FillRectangle(new SolidBrush(color), (col * cellSize)+1, (row * cellSize)+1, cellSize -2, cellSize-2);
+          }
+        }
+        bmp.Save(filename);
+      }
+    }
+
+    void CreateGifFromImages(string[] imageFiles, string outputGif)
+    {
+      using (var collection = new MagickImageCollection())
+      {
+        foreach (var file in imageFiles)
+        {
+          var image = new MagickImage(file);
+          image.AnimationDelay = 3; // 10 = 0.1s per frame
+          collection.Add(image);
+        }
+        collection.Write(outputGif);
+      }
+    }
+
+    List<(int row, int col)> directions = new List<(int row, int col)>
+    {
+      (-1, -1), (-1, 0), (-1, 1),
+      (0, -1),          (0, 1),
+      (1, -1),  (1, 0), (1, 1)
+    };
+
+    private int CountSymbolsInMatrixAroundMe(List<List<char>> matrix, int row, int col, char v)
+    {
+      int count = 0;
+      foreach (var dir in directions)
+      {
+        (int row,int col) checkPos = (row + dir.row, col + dir.col);
+        if (checkPos.row<0 || checkPos.col <0 || checkPos.row >= matrix.Count || checkPos.col >= matrix[0].Count )
+        {
+            continue;
+        }
+        if (matrix[checkPos.row][checkPos.col] == v)
+        {
+          count++;
+        }
+      }
+      return count;
+    }
+
+    private long BuildJolt(string line, List<int> notUsed) {
+      long result = 0;
+
+      for (int i = 0; i < line.Length; i++) {
+        if (notUsed.Contains(i)) {
+          continue;
+        }
+        int point = int.Parse(line[i].ToString());
+        result = result * 10 + point;
+      }
+      return result;
+    }
+
+
+    private static long CheckIdForRepeatingStructure(long result, long idToCheck)
+    {
+      string idToCheckAsString = idToCheck.ToString();
+      for (int splitpos = 1; splitpos <= idToCheckAsString.Length / 2; splitpos++)
+      {
+        if (idToCheckAsString.Length % splitpos != 0)
         {
           continue;
         }
 
-        string frontnumber = checknumber.Substring(0, splitpos);
+        string frontnumber = idToCheckAsString.Substring(0, splitpos);
         bool isId = true;
-        for (int pos = splitpos; pos < checknumber.Length; pos += splitpos)
+        for (int pos = splitpos; pos < idToCheckAsString.Length; pos += splitpos)
         {
-          string nextpart = checknumber.Substring(pos, splitpos);
-          if (frontnumber != nextpart)
+          string nextpart = idToCheckAsString.Substring(pos, splitpos);
+          if (!frontnumber.Equals(nextpart))
           {
             isId = false;
             break;
@@ -182,7 +395,7 @@ namespace MyAdventTests
 
         if (isId)
         {
-          result += i;
+          result += idToCheck;
           break;
         }
       }
