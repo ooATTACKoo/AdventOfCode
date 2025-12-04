@@ -30,7 +30,7 @@ namespace MyAdventTests
       using (var bmp = new Bitmap(width, height))
       using (var g = Graphics.FromImage(bmp))
       {
-        g.Clear(Color.White);
+        g.Clear(Color.Blue);
         for (int row = 0; row < matrix.Count; row++)
         {
           for (int col = 0; col < matrix[row].Count; col++)

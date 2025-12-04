@@ -10,7 +10,7 @@ namespace MyAdventTests
 
 {
   [TestClass]
-  public class AdventOfCode2025 : Visualizer
+  public class AdventOfCode2025
   {
 
     [TestCategory("L0")]
@@ -277,7 +277,7 @@ namespace MyAdventTests
               counter++;
               if (imageprintcounter % 20 == 0)
               {
-                SaveMatrixAsImage(matrix, $"c:\\aoc\\Day4b_Step_{counter}.png");
+                Visualizer.SaveMatrixAsImage(matrix, $"c:\\aoc\\Day4b_Step_{counter}.png");
                 imageFiles.Add($"c:\\aoc\\Day4b_Step_{counter}.png");
               }
 
@@ -286,10 +286,10 @@ namespace MyAdventTests
 
         }
         imageprintcounter = 0;
-        SaveMatrixAsImage(matrix, $"c:\\aoc\\Day4b_Step_{counter}.png");
+        Visualizer.SaveMatrixAsImage(matrix, $"c:\\aoc\\Day4b_Step_{counter}.png");
         imageFiles.Add($"c:\\aoc\\Day4b_Step_{counter}.png");
       }
-      CreateGifFromImages(imageFiles.ToArray(), "c:\\aoc\\Day4b_AnimationBlue.gif");
+      Visualizer.CreateGifFromImages(imageFiles.ToArray(), "c:\\aoc\\Day4b_AnimationBlue.gif");
       foreach (var file in imageFiles)
       {
         File.Delete(file);
