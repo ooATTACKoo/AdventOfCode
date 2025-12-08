@@ -153,7 +153,7 @@ namespace MyAdventTests
         long endint = long.Parse(end);
         for (long i = startint; i <= endint; i++)
         {
-           result = CheckIdForRepeatingStructure(result, i);
+          result = CheckIdForRepeatingStructure(result, i);
         }
 
       }
@@ -199,7 +199,7 @@ namespace MyAdventTests
       {
         int killIx = -1;
         string changedline = line;
-        for (int t = 0; t < line.Length-12; t++)
+        for (int t = 0; t < line.Length - 12; t++)
         {
           for (int i = 0; i < changedline.Length - 1; i++)
           {
@@ -212,14 +212,14 @@ namespace MyAdventTests
             }
             if (i == changedline.Length - 2)
             {
-              killIx = i+1;
+              killIx = i + 1;
             }
           }
           changedline = changedline.Remove(killIx, 1);
         }
 
         long jolt = long.Parse(changedline);
-        result += jolt;       
+        result += jolt;
 
       }
       Assert.AreEqual(result, 171741365473332);
@@ -234,12 +234,13 @@ namespace MyAdventTests
       {
         var line = matrix[row];
         for (int col = 0; col < line.Count; col++)
-        { 
-          if (line[col] != '@') {
+        {
+          if (line[col] != '@')
+          {
             continue;
           }
           int atCounter = CountSymbolsInMatrixAroundMe(matrix, row, col, '@');
-          if ( atCounter<4)
+          if (atCounter < 4)
           {
             counter++;
           }
@@ -277,7 +278,7 @@ namespace MyAdventTests
               counter++;
               if (imageprintcounter % 20 == 0)
               {
-                Visualizer.SaveMatrixAsImage(matrix, $"c:\\aoc\\Day4b_Step_{counter}.png");
+               // Visualizer.SaveMatrixAsImage(matrix, $"c:\\aoc\\Day4b_Step_{counter}.png");
                 imageFiles.Add($"c:\\aoc\\Day4b_Step_{counter}.png");
               }
 
@@ -286,10 +287,10 @@ namespace MyAdventTests
 
         }
         imageprintcounter = 0;
-        Visualizer.SaveMatrixAsImage(matrix, $"c:\\aoc\\Day4b_Step_{counter}.png");
+        //Visualizer.SaveMatrixAsImage(matrix, $"c:\\aoc\\Day4b_Step_{counter}.png");
         imageFiles.Add($"c:\\aoc\\Day4b_Step_{counter}.png");
       }
-      Visualizer.CreateGifFromImages(imageFiles.ToArray(), "c:\\aoc\\Day4b_AnimationBlue.gif");
+      //Visualizer.CreateGifFromImages(imageFiles.ToArray(), "c:\\aoc\\Day4b_AnimationBlue.gif");
       foreach (var file in imageFiles)
       {
         File.Delete(file);
@@ -297,7 +298,224 @@ namespace MyAdventTests
       Assert.AreEqual(8936, counter);
     }
 
-    List<(int row, int col)> directions = new List<(int row, int col)>
+    [TestMethod]
+    public void Day5A()
+    {
+      string data = FileReader.LoadFileIntoOneString("2025/05A.txt");
+      List<string> lines = data.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
+      var ranges = lines.Where(x => x.Contains("-")).ToList();
+      var ids = lines.Where(x => !x.Contains("-")).ToList();
+
+      List<(long start, long end)> rangesInteger = new List<(long, long)>();
+      foreach (var range in ranges)
+      {
+        var split = range.Split('-');
+        long first = long.Parse(split[0]);
+        long second = long.Parse(split[1]);
+        rangesInteger.Add((first, second));
+      }
+
+      int foundCount = 0;
+      foreach (var id in ids)
+      {
+        bool found = false;
+        var idNumber = long.Parse(id);
+        foreach (var range in rangesInteger)
+        {
+          if (idNumber >= range.start && idNumber <= range.end)
+          {
+            foundCount++;
+            found = true;
+            break;
+          }
+        }
+      }
+      Assert.AreEqual(615, foundCount);
+    }
+
+    [TestMethod]
+    public void Day5B()
+    {
+      string data = FileReader.LoadFileIntoOneString("2025/05A.txt");
+      List<string> lines = data.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToList();
+      var ranges = lines.Where(x => x.Contains("-")).ToList();
+      var ids = lines.Where(x => !x.Contains("-")).ToList();
+
+      List<(long start, long end)> rangesInteger = new List<(long, long)>();
+      List<(long start, long end)> MergedRangesInteger = new List<(long, long)>();
+      foreach (var range in ranges)
+      {
+        var split = range.Split('-');
+        long first = long.Parse(split[0]);
+        long second = long.Parse(split[1]);
+        rangesInteger.Add((first, second));
+      }
+
+      rangesInteger = rangesInteger.OrderBy(x => x.start).ToList();
+
+      foreach (var range in rangesInteger)
+      {
+        (long, long) lastMerged = range;
+        bool doMerge = false;
+        long newEnd = range.end;
+        foreach (var merged in MergedRangesInteger)
+        {
+          Assert.IsTrue(range.start >= merged.start);
+          if (range.start <= merged.end)
+          {
+            newEnd = Math.Max(merged.end, range.end);
+            lastMerged = merged;
+            doMerge = true;
+            break;
+          }
+
+        }
+        if (doMerge)
+        {
+          MergedRangesInteger.Remove(lastMerged);
+          MergedRangesInteger.Add((lastMerged.Item1, newEnd));
+        } else
+        {
+          MergedRangesInteger.Add(range);
+        }
+      }
+
+      long result = 0;
+      foreach (var r in MergedRangesInteger)
+      {
+        result += (r.end - r.start + 1);
+      }
+      Assert.AreEqual(353716783056994, result);
+    }
+
+    [TestMethod]
+    public void Day6A()
+    {
+      string data = FileReader.LoadFileIntoOneString("2025/06A.txt");
+      string[] lines = data.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+      string[] firstrow = lines[0].Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+      string[] secondrow = lines[1].Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+      string[] thirdrow = lines[2].Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+      string[] forthrow = lines[3].Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+      string[] math = lines[4].Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+      long result = 0;
+      int counter = 0;
+      for (int i = 0; i < firstrow.Length; i++)
+      {
+        counter++;
+        long first = int.Parse(firstrow[i]);
+        long second = int.Parse(secondrow[i]);
+        long third = int.Parse(thirdrow[i]);
+        long forth = int.Parse(forthrow[i]);
+
+        if (first==0 || second == 0 || third == 0 || forth == 0)
+        {
+          throw new Exception("Invalid input");
+        }
+        long res;
+        switch (math[i])
+        {
+          case "+":
+           res =  (first + second + third + forth);
+          result += res;
+
+          break;
+          case "*":
+          res = (first * second * third * forth);
+          result += res;
+          break;
+          default:
+          throw new Exception("Unknown math operation");
+        }
+
+        string logFilePath = @"c:\aoc\input_log.txt";
+        string logLine = $"first={first}, second={second}, third={third}, forth={forth}, Operator={math[i]} == {res}{Environment.NewLine}";
+        File.AppendAllText(logFilePath, logLine);
+
+      }
+
+      Assert.AreEqual(4387670995909, result);
+    }
+
+    [TestMethod]
+    public void Day6B()
+    {
+      string data = FileReader.LoadFileIntoOneString("2025/06A.txt");
+      string[] lines = data.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries).ToArray();
+      string firstrow = lines[0];
+      string secondrow = lines[1];
+      string thirdrow = lines[2];
+      string forthrow = lines[3];
+      string math = lines[4];
+      long result = 0;
+
+      List<long> numbers = new List<long>();
+
+      for (int i = firstrow.Length-1; i >=0; i--)
+      {
+      bool hasfirst = char.IsDigit(firstrow[i]);
+        bool hassecond = char.IsDigit(secondrow[i]);
+        bool hasthird = char.IsDigit(thirdrow[i]);
+        bool hasforth = char.IsDigit(forthrow[i]);
+
+        long first = hasfirst ? int.Parse(firstrow[i].ToString()) : 0;
+
+        long second = hassecond ? int.Parse(secondrow[i].ToString()) : 0;
+        long third = hasthird ? int.Parse(thirdrow[i].ToString()) : 0;
+        long forth = hasforth ? int.Parse(forthrow[i].ToString()) : 0;
+
+        List<bool> hasNumbers = new List<bool> { hasfirst, hassecond, hasthird, hasforth };
+        long[] numberscalc = new long[] { first, second, third, forth };
+        long res = 0;
+        int counter = 0;
+        foreach (var hasNum in hasNumbers)
+        {
+          if (hasNum)
+          {
+            res = res * 10;
+            res += numberscalc[counter];
+          }
+          counter++;
+        }
+
+        if (res != 0)
+        {
+          numbers.Add(res);
+        }
+        long onecalc = 0;
+        switch (math[i].ToString())
+        {
+          case "+":
+          foreach (var num in numbers)
+          {
+            onecalc += num;
+          }
+          result += onecalc;
+          numbers.Clear();
+          break;
+          case "*":
+          onecalc = 1;
+          foreach (var num in numbers)
+          {
+            onecalc *= num;
+          }
+          result += onecalc;
+          numbers.Clear();
+          break;
+          default:
+          break;
+        }
+
+        string logFilePath = @"c:\aoc\input_log.txt";
+        string logLine = $"first={first}, second={second}, third={third}, forth={forth}, Operator={math[i]} == {res}{Environment.NewLine}";
+        File.AppendAllText(logFilePath, logLine);
+
+      }
+
+      Assert.AreEqual(9625320374409, result);
+    }
+
+    private readonly List<(int row, int col)> directions = new List<(int row, int col)>
     {
       (-1, -1), (-1, 0), (-1, 1),
       (0, -1),          (0, 1),
@@ -309,10 +527,10 @@ namespace MyAdventTests
       int count = 0;
       foreach (var dir in directions)
       {
-        (int row,int col) checkPos = (row + dir.row, col + dir.col);
-        if (checkPos.row<0 || checkPos.col <0 || checkPos.row >= matrix.Count || checkPos.col >= matrix[0].Count )
+        (int row, int col) checkPos = (row + dir.row, col + dir.col);
+        if (checkPos.row < 0 || checkPos.col < 0 || checkPos.row >= matrix.Count || checkPos.col >= matrix[0].Count)
         {
-            continue;
+          continue;
         }
         if (matrix[checkPos.row][checkPos.col] == v)
         {
@@ -322,11 +540,14 @@ namespace MyAdventTests
       return count;
     }
 
-    private long BuildJolt(string line, List<int> notUsed) {
+    private long BuildJolt(string line, List<int> notUsed)
+    {
       long result = 0;
 
-      for (int i = 0; i < line.Length; i++) {
-        if (notUsed.Contains(i)) {
+      for (int i = 0; i < line.Length; i++)
+      {
+        if (notUsed.Contains(i))
+        {
           continue;
         }
         int point = int.Parse(line[i].ToString());
